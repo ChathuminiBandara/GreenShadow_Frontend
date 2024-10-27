@@ -3,7 +3,7 @@ body {
 }
 
 h1, h2 {
-    color: #2E7D32; /* Green color */
+    color: #2E7D32;
 }
 
 .container {
@@ -16,3 +16,4 @@ footer {
     width: 100%;
     padding: 10px 0;
 }
+
