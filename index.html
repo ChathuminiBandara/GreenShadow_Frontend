@@ -50,5 +50,19 @@
     function loadContent(page) {
         $('#main-content').load(page); // Load the content of the page into #main-content
     }
+    $(document).ready(function() {
+        if (localStorage.getItem('showSignIn')) {
+            loadContent('signin.html'); // Load sign-in page
+            localStorage.removeItem('showSignIn'); // Clear the flag
+        }
+    });
+
+    function loadContent(page) {
+        $('#main-content').load(page, function(response, status, xhr) {
+            if (status == "error") {
+                alert("Error loading page: " + xhr.status + " " + xhr.statusText);
+            }
+        });
+    }
 </script>
 </body>
