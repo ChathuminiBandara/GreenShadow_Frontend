@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h2 class="text-center">Sign Up</h2>
+    <form id="signUpForm" class="mt-4">
+        <div class="d-flex flex-column align-items-center">
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input style="width: 40vw; opacity: 0.5;" type="text" class="form-control" id="username" placeholder="Ian Nor" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input style="width: 40vw; opacity: 0.5;" type="password" class="form-control" id="password" placeholder="1234" required>
+            </div>
+            <div class="mb-3">
+                <label for="role" class="form-label">Position</label>
+                <select style="width: 40vw" class="form-select" id="role" required>
+                    <option value="Manager">Manager</option>
+                    <option value="Administrative">Administrative</option>
+                    <option value="Scientist">Scientist</option>
+                </select>
+            </div>
+        </div>
+
+
+        <div style="text-align: center;">
+            <button style="width: 100px;" type="submit" class="btn btn-success">Sign Up</button>
+        </div>
+
+        <p style="text-align: center; padding-top: 10px">
+            Already Have An Account
+            <a href="SignIn.html">Sign In</a>
+        </p>
+
+    </form>
+</div>
+
+<script>
+    document.getElementById('signUpForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        // Simulate a successful login
+        localStorage.setItem('authToken', 'sample-token'); // Store a dummy token
+        window.location.href = 'index.html'; // Redirect to index.html
+    });
+
+    function loadContent(page) {
+        $('#main-content').load(page, function(response, status, xhr) {
+            if (status == "error") {
+                alert("Error loading page: " + xhr.status + " " + xhr.statusText);
+            }
+        });
+    }
+
+
+    // Handle sign-up form submission
+    $('#signUpForm').submit(function(event) {
+        event.preventDefault();
+        const username = $('#username').val();
+        const password = $('#password').val();
+        const role = $('#role').val();
+
+        // Perform AJAX request for sign-up (use actual backend endpoint)
+        $.ajax({
+            url: '/api/auth/signup',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ username, password, role }),
+            success: function(response) {
+                alert("Account created successfully");
+                // Redirect to the sign-in page
+                loadContent('SignIn.html');
+            },
+            error: function(error) {
+                alert("Error during sign up");
+            }
+        });
+    });
+</script>
+</body>
+</html>
+
