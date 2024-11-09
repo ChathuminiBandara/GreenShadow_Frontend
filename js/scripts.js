@@ -24,7 +24,7 @@
 // Repeat similar functions for loadCrops, loadStaff, loadVehicles, loadEquipment, loadLogs
 
 
-/*// js/scripts.js
+// js/scripts.js
 $(document).ready(function() {
     $('.nav-link').click(function(e) {
         e.preventDefault(); // Prevent default anchor click behavior
@@ -37,4 +37,4 @@ $(document).ready(function() {
             }
         });
     });
-});*/
+});
