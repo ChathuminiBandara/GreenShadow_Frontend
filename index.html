@@ -15,7 +15,7 @@
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">Home</a>
+        <a class="navbar-brand" href="#" onclick="loadContent('index.html')">Home</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -32,13 +32,59 @@
     </div>
 </nav>
 
+<!-- Main Content -->
 <main class="container mt-4" id="main-content">
-    <!-- Main content will be dynamically loaded here -->
-    <p>Welcome to the Green Shadow Crop Monitoring System. Select a section to load.</p>
+    <!-- Introduction Section -->
+    <section class="text-center">
+        <p class="lead">Welcome to the Green Shadow Crop Monitoring System! Select a section to get started.</p>
+        <p>Efficient crop management begins here. Track crop health, monitor field progress, and stay on top of your harvest season!</p>
+    </section>
+
+    <!-- Feature Section with Cards -->
+    <section class="row mt-5">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-success">
+                <img src="images/crops.jpg" class="card-img-top" alt="Crops">
+                <div class="card-body">
+                    <h5 class="card-title">Manage Crops</h5>
+                    <p class="card-text">Keep detailed records of crop information, monitor growth stages, and ensure healthy yields.</p>
+                    <li class="nav-item"><a class="nav-link; btn btn-success" href="#" onclick="loadContent('Crops.html')">Logs</a></li>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-success">
+                <img src="images/fields.jpg" class="card-img-top" alt="Fields">
+                <div class="card-body">
+                    <h5 class="card-title">Field Management</h5>
+                    <p class="card-text">Track field status, soil health, and other essential factors for optimal planting and harvesting.</p>
+                    <a href="#fields" class="btn btn-success">View Fields</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-success">
+                <img src="images/analytics.jpg" class="card-img-top" alt="Analytics">
+                <div class="card-body">
+                    <h5 class="card-title">Data Analytics</h5>
+                    <p class="card-text">Get insights with data-driven analytics to make informed decisions for your crop management.</p>
+                    <a href="#analytics" class="btn btn-success">Analyze Data</a>
+                </div>
+            </div>
+        </div>
+    </section>
 </main>
 
-<footer class="bg-success text-white text-center p-3">
+<!-- Footer -->
+<footer class="bg-success text-white text-center p-3 mt-5">
     <p>&copy; 2024 Green Shadow (Pvt) Ltd. All rights reserved.</p>
+    <p>Contact us at <a href="mailto:support@greenshadow.com" class="text-white">support@greenshadow.com</a></p>
+    <p>Follow us on:
+        <a href="#" class="text-white mx-2"><i class="bi bi-facebook"></i> Facebook</a>
+        <a href="#" class="text-white mx-2"><i class="bi bi-twitter"></i> Twitter</a>
+        <a href="#" class="text-white mx-2"><i class="bi bi-instagram"></i> Instagram</a>
+    </p>
 </footer>
 
 <!-- Bootstrap and Popper.js dependencies -->
