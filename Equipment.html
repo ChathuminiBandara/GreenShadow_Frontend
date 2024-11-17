@@ -16,9 +16,10 @@
 <main class="container mt-4">
     <section id="equipment">
         <h2>Equipment Management</h2>
-        <p>The Green Shadow Crop Monitoring System tracks all agricultural equipment utilized in crop production and maintenance. Below is the overview of the equipment along with their current statuses and usage details.</p>
+        <p>The Green Shadow Crop Monitoring System tracks all agricultural equipment utilized in crop production and maintenance.</p>
 
-        <table class="table table-striped">
+        <!-- Equipment Table -->
+        <table class="table table-striped" id="equipmentTable">
             <thead>
             <tr>
                 <th scope="col">Equipment ID</th>
@@ -28,70 +29,139 @@
                 <th scope="col">Status</th>
                 <th scope="col">Last Serviced</th>
                 <th scope="col">Location</th>
+                <th scope="col">Actions</th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>E001</td>
-                <td>Tractor</td>
-                <td>Heavy Machinery</td>
-                <td>2023-01-10</td>
-                <td>Operational</td>
-                <td>2024-09-20</td>
-                <td>Field A</td>
-            </tr>
-            <tr>
-                <td>E002</td>
-                <td>Plow</td>
-                <td>Implement</td>
-                <td>2023-02-15</td>
-                <td>Operational</td>
-                <td>2024-09-18</td>
-                <td>Field B</td>
-            </tr>
-            <tr>
-                <td>E003</td>
-                <td>Sprayer</td>
-                <td>Equipment</td>
-                <td>2023-03-25</td>
-                <td>Under Maintenance</td>
-                <td>2024-10-01</td>
-                <td>Field C</td>
-            </tr>
-            <tr>
-                <td>E004</td>
-                <td>Harvester</td>
-                <td>Heavy Machinery</td>
-                <td>2023-04-05</td>
-                <td>Operational</td>
-                <td>2024-08-15</td>
-                <td>Field D</td>
-            </tr>
+            <!-- Dynamic rows will be appended here -->
             </tbody>
         </table>
 
-        <h4>Equipment Management Actions</h4>
-        <p>Users can perform the following actions related to equipment management:</p>
-        <ul>
-            <li><strong>Add New Equipment:</strong> Enter details to add new equipment to the system.</li>
-            <li><strong>Edit Equipment Information:</strong> Modify existing equipment details for accuracy.</li>
-            <li><strong>Delete Equipment:</strong> Remove equipment that is no longer in use.</li>
-        </ul>
-
-        <h4>Regular Maintenance</h4>
-        <p>Routine maintenance is crucial to ensure the longevity and efficiency of agricultural equipment. Key practices include:</p>
-        <ul>
-            <li>Regular Oil Changes</li>
-            <li>Checking Tire Pressure</li>
-            <li>Cleaning Filters</li>
-            <li>Annual Inspections</li>
-        </ul>
-
-        <p>For any issues or support regarding equipment, please contact the equipment management team.</p>
+        <!-- Add New Equipment Form -->
+        <h4>Add New Equipment</h4>
+        <form id="addEquipmentForm">
+            <div class="mb-3">
+                <label for="equipmentName" class="form-label">Equipment Name</label>
+                <input type="text" class="form-control" id="equipmentName" required>
+            </div>
+            <div class="mb-3">
+                <label for="equipmentType" class="form-label">Type</label>
+                <input type="text" class="form-control" id="equipmentType" required>
+            </div>
+            <div class="mb-3">
+                <label for="purchaseDate" class="form-label">Purchase Date</label>
+                <input type="date" class="form-control" id="purchaseDate" required>
+            </div>
+            <div class="mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-control" id="status" required>
+                    <option value="Operational">Operational</option>
+                    <option value="Under Maintenance">Under Maintenance</option>
+                    <option value="Decommissioned">Decommissioned</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="lastServiced" class="form-label">Last Serviced</label>
+                <input type="date" class="form-control" id="lastServiced" required>
+            </div>
+            <div class="mb-3">
+                <label for="location" class="form-label">Location</label>
+                <input type="text" class="form-control" id="location" required>
+            </div>
+            <button type="submit" class="btn btn-success">Add Equipment</button>
+        </form>
     </section>
 </main>
 
+<script>
+    let equipmentCount = 0; // Counter for Equipment IDs
 
+    const renderTable = (equipmentList) => {
+        const tableBody = $('#equipmentTable tbody');
+        tableBody.empty();
+        equipmentList.forEach((equipment, index) => {
+            tableBody.append(`
+                <tr>
+                    <td>${equipment.id}</td>
+                    <td>${equipment.name}</td>
+                    <td>${equipment.type}</td>
+                    <td>${equipment.purchaseDate}</td>
+                    <td>${equipment.status}</td>
+                    <td>${equipment.lastServiced}</td>
+                    <td>${equipment.location}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editEquipment(${index})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteEquipment(${index})">Delete</button>
+                    </td>
+                </tr>
+            `);
+        });
+    };
+
+    const equipmentList = []; // Temporary storage for equipment
+
+    const addEquipment = (e) => {
+        e.preventDefault();
+
+        // Generate new Equipment ID
+        equipmentCount++;
+        const newEquipment = {
+            id: `E${String(equipmentCount).padStart(3, '0')}`,
+            name: $('#equipmentName').val(),
+            type: $('#equipmentType').val(),
+            purchaseDate: $('#purchaseDate').val(),
+            status: $('#status').val(),
+            lastServiced: $('#lastServiced').val(),
+            location: $('#location').val(),
+        };
+
+        equipmentList.push(newEquipment); // Add equipment to the list
+        renderTable(equipmentList); // Re-render the table
+        $('#addEquipmentForm')[0].reset(); // Reset the form
+    };
+
+    const editEquipment = (index) => {
+        const equipment = equipmentList[index];
+
+        // Pre-fill the form with the selected equipment data
+        $('#equipmentName').val(equipment.name);
+        $('#equipmentType').val(equipment.type);
+        $('#purchaseDate').val(equipment.purchaseDate);
+        $('#status').val(equipment.status);
+        $('#lastServiced').val(equipment.lastServiced);
+        $('#location').val(equipment.location);
+
+        // Change button text to "Update Equipment"
+        $('#addEquipmentForm button').text('Update Equipment').off().click((e) => {
+            e.preventDefault();
+
+            // Update equipment details
+            equipmentList[index] = {
+                ...equipment,
+                name: $('#equipmentName').val(),
+                type: $('#equipmentType').val(),
+                purchaseDate: $('#purchaseDate').val(),
+                status: $('#status').val(),
+                lastServiced: $('#lastServiced').val(),
+                location: $('#location').val(),
+            };
+
+            renderTable(equipmentList); // Re-render the table
+            $('#addEquipmentForm')[0].reset(); // Reset the form
+            $('#addEquipmentForm button').text('Add Equipment').off().click(addEquipment); // Restore default button behavior
+        });
+    };
+
+    const deleteEquipment = (index) => {
+        equipmentList.splice(index, 1); // Remove equipment from the list
+        renderTable(equipmentList); // Re-render the table
+    };
+
+    $(document).ready(() => {
+        renderTable(equipmentList); // Render empty table on load
+        $('#addEquipmentForm').submit(addEquipment); // Bind form submission
+    });
+</script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
