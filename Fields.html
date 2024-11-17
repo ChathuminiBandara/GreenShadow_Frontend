@@ -16,9 +16,10 @@
 <main class="container mt-4">
     <section id="fields">
         <h2>Fields Information</h2>
-        <p>The Green Shadow Crop Monitoring System provides detailed information on various fields used for crop cultivation. Below is the overview of the fields along with their conditions and details.</p>
+        <p>Detailed overview of fields used for crop cultivation.</p>
 
-        <table class="table table-striped">
+        <!-- Fields Table -->
+        <table class="table table-striped" id="fieldTable">
             <thead>
             <tr>
                 <th scope="col">Field ID</th>
@@ -28,70 +29,135 @@
                 <th scope="col">Crop Type</th>
                 <th scope="col">Irrigation Status</th>
                 <th scope="col">Soil Quality</th>
+                <th scope="col">Actions</th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>F001</td>
-                <td>North Field</td>
-                <td>North Zone</td>
-                <td>15</td>
-                <td>Rice</td>
-                <td>Active</td>
-                <td>Good</td>
-            </tr>
-            <tr>
-                <td>F002</td>
-                <td>East Field</td>
-                <td>East Zone</td>
-                <td>20</td>
-                <td>Wheat</td>
-                <td>Inactive</td>
-                <td>Average</td>
-            </tr>
-            <tr>
-                <td>F003</td>
-                <td>South Field</td>
-                <td>South Zone</td>
-                <td>10</td>
-                <td>Maize</td>
-                <td>Active</td>
-                <td>Excellent</td>
-            </tr>
-            <tr>
-                <td>F004</td>
-                <td>West Field</td>
-                <td>West Zone</td>
-                <td>5</td>
-                <td>Barley</td>
-                <td>Pending</td>
-                <td>Poor</td>
-            </tr>
+            <!-- Dynamic content goes here -->
             </tbody>
         </table>
 
-        <h4>Field Management Actions</h4>
-        <p>Users can perform the following actions related to field management:</p>
-        <ul>
-            <li><strong>Add New Field:</strong> Enter details to add a new field to the system.</li>
-            <li><strong>Edit Field Information:</strong> Modify existing field details for accuracy.</li>
-            <li><strong>Delete Field:</strong> Remove a field that is no longer in use.</li>
-        </ul>
-
-        <h4>Field Conditions</h4>
-        <p>Regular monitoring of field conditions is essential for effective crop management. Here are some key indicators to track:</p>
-        <ul>
-            <li>Soil Moisture Levels</li>
-            <li>Pest and Disease Alerts</li>
-            <li>Weather Conditions</li>
-            <li>Harvesting Status</li>
-        </ul>
-
-        <p>For more detailed analytics and management, please contact the field management team.</p>
+        <!-- Add New Field Form -->
+        <h4>Add New Field</h4>
+        <form id="addFieldForm">
+            <div class="mb-3">
+                <label for="fieldName" class="form-label">Field Name</label>
+                <input type="text" class="form-control" id="fieldName" required>
+            </div>
+            <div class="mb-3">
+                <label for="location" class="form-label">Location</label>
+                <input type="text" class="form-control" id="location" required>
+            </div>
+            <div class="mb-3">
+                <label for="area" class="form-label">Area (Acres)</label>
+                <input type="number" class="form-control" id="area" required>
+            </div>
+            <div class="mb-3">
+                <label for="cropType" class="form-label">Crop Type</label>
+                <input type="text" class="form-control" id="cropType" required>
+            </div>
+            <div class="mb-3">
+                <label for="irrigationStatus" class="form-label">Irrigation Status</label>
+                <select class="form-control" id="irrigationStatus" required>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Pending">Pending</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="soilQuality" class="form-label">Soil Quality</label>
+                <select class="form-control" id="soilQuality" required>
+                    <option value="Excellent">Excellent</option>
+                    <option value="Good">Good</option>
+                    <option value="Average">Average</option>
+                    <option value="Poor">Poor</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-success">Add Field</button>
+        </form>
     </section>
 </main>
 
+<script>
+    const fields = [
+        { id: 'F001', name: 'North Field', location: 'North Zone', area: 15, crop: 'Rice', irrigation: 'Active', soil: 'Good' },
+        { id: 'F002', name: 'East Field', location: 'East Zone', area: 20, crop: 'Wheat', irrigation: 'Inactive', soil: 'Average' },
+        { id: 'F003', name: 'South Field', location: 'South Zone', area: 10, crop: 'Maize', irrigation: 'Active', soil: 'Excellent' },
+        { id: 'F004', name: 'West Field', location: 'West Zone', area: 5, crop: 'Barley', irrigation: 'Pending', soil: 'Poor' },
+    ];
 
+    const renderFields = () => {
+        const tableBody = $('#fieldTable tbody');
+        tableBody.empty();
+        fields.forEach((field, index) => {
+            tableBody.append(`
+                <tr>
+                    <td>${field.id}</td>
+                    <td>${field.name}</td>
+                    <td>${field.location}</td>
+                    <td>${field.area}</td>
+                    <td>${field.crop}</td>
+                    <td>${field.irrigation}</td>
+                    <td>${field.soil}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editField(${index})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteField(${index})">Delete</button>
+                    </td>
+                </tr>
+            `);
+        });
+    };
+
+    const addField = (e) => {
+        e.preventDefault();
+        const newField = {
+            id: `F00${fields.length + 1}`,
+            name: $('#fieldName').val(),
+            location: $('#location').val(),
+            area: $('#area').val(),
+            crop: $('#cropType').val(),
+            irrigation: $('#irrigationStatus').val(),
+            soil: $('#soilQuality').val(),
+        };
+        fields.push(newField);
+        renderFields();
+        $('#addFieldForm')[0].reset();
+    };
+
+    const editField = (index) => {
+        const field = fields[index];
+        $('#fieldName').val(field.name);
+        $('#location').val(field.location);
+        $('#area').val(field.area);
+        $('#cropType').val(field.crop);
+        $('#irrigationStatus').val(field.irrigation);
+        $('#soilQuality').val(field.soil);
+        $('#addFieldForm button').text('Update Field').off().click(() => {
+            fields[index] = {
+                id: field.id,
+                name: $('#fieldName').val(),
+                location: $('#location').val(),
+                area: $('#area').val(),
+                crop: $('#cropType').val(),
+                irrigation: $('#irrigationStatus').val(),
+                soil: $('#soilQuality').val(),
+            };
+            renderFields();
+            $('#addFieldForm')[0].reset();
+            $('#addFieldForm button').text('Add Field').off().click(addField);
+        });
+    };
+
+    const deleteField = (index) => {
+        fields.splice(index, 1);
+        renderFields();
+    };
+
+    $(document).ready(() => {
+        renderFields();
+        $('#addFieldForm').submit(addField);
+    });
+</script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
