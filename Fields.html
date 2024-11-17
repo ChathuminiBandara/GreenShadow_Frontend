@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fields - Crop Monitoring System</title>
-    <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -16,7 +15,7 @@
 <main class="container mt-4">
     <section id="fields">
         <h2>Fields Information</h2>
-        <p>Detailed overview of fields used for crop cultivation.</p>
+        <p>Dynamic field management for crop cultivation.</p>
 
         <!-- Fields Table -->
         <table class="table table-striped" id="fieldTable">
@@ -79,14 +78,10 @@
 </main>
 
 <script>
-    const fields = [
-        { id: 'F001', name: 'North Field', location: 'North Zone', area: 15, crop: 'Rice', irrigation: 'Active', soil: 'Good' },
-        { id: 'F002', name: 'East Field', location: 'East Zone', area: 20, crop: 'Wheat', irrigation: 'Inactive', soil: 'Average' },
-        { id: 'F003', name: 'South Field', location: 'South Zone', area: 10, crop: 'Maize', irrigation: 'Active', soil: 'Excellent' },
-        { id: 'F004', name: 'West Field', location: 'West Zone', area: 5, crop: 'Barley', irrigation: 'Pending', soil: 'Poor' },
-    ];
+    let fieldCount = 0; // Counter for Field IDs
 
-    const renderFields = () => {
+    // Render the Fields Table
+    const renderFields = (fields) => {
         const tableBody = $('#fieldTable tbody');
         tableBody.empty();
         fields.forEach((field, index) => {
@@ -108,10 +103,15 @@
         });
     };
 
+    const fields = []; // Temporary storage for fields
+
     const addField = (e) => {
         e.preventDefault();
+
+        // Auto-generate Field ID
+        fieldCount++;
         const newField = {
-            id: `F00${fields.length + 1}`,
+            id: `F${String(fieldCount).padStart(3, '0')}`,
             name: $('#fieldName').val(),
             location: $('#location').val(),
             area: $('#area').val(),
@@ -119,22 +119,30 @@
             irrigation: $('#irrigationStatus').val(),
             soil: $('#soilQuality').val(),
         };
-        fields.push(newField);
-        renderFields();
-        $('#addFieldForm')[0].reset();
+
+        fields.push(newField); // Add new field to array
+        renderFields(fields); // Re-render table
+        $('#addFieldForm')[0].reset(); // Reset form
     };
 
     const editField = (index) => {
         const field = fields[index];
+
+        // Populate form with field data
         $('#fieldName').val(field.name);
         $('#location').val(field.location);
         $('#area').val(field.area);
         $('#cropType').val(field.crop);
         $('#irrigationStatus').val(field.irrigation);
         $('#soilQuality').val(field.soil);
-        $('#addFieldForm button').text('Update Field').off().click(() => {
+
+        // Change button text to "Update Field"
+        $('#addFieldForm button').text('Update Field').off().click((e) => {
+            e.preventDefault();
+
+            // Update field data
             fields[index] = {
-                id: field.id,
+                ...field,
                 name: $('#fieldName').val(),
                 location: $('#location').val(),
                 area: $('#area').val(),
@@ -142,20 +150,21 @@
                 irrigation: $('#irrigationStatus').val(),
                 soil: $('#soilQuality').val(),
             };
-            renderFields();
-            $('#addFieldForm')[0].reset();
-            $('#addFieldForm button').text('Add Field').off().click(addField);
+
+            renderFields(fields); // Re-render table
+            $('#addFieldForm')[0].reset(); // Reset form
+            $('#addFieldForm button').text('Add Field').off().click(addField); // Reset button
         });
     };
 
     const deleteField = (index) => {
-        fields.splice(index, 1);
-        renderFields();
+        fields.splice(index, 1); // Remove field from array
+        renderFields(fields); // Re-render table
     };
 
     $(document).ready(() => {
-        renderFields();
-        $('#addFieldForm').submit(addField);
+        renderFields(fields); // Initialize empty table
+        $('#addFieldForm').submit(addField); // Bind form submission
     });
 </script>
 
