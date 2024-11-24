@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff - Crop Monitoring System</title>
-    <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -18,61 +17,23 @@
         <h2>Staff Management</h2>
         <p>This section provides an overview of the staff members involved in the crop monitoring activities. Users can view, add, and manage staff information.</p>
 
-        <h4>Staff Members List</h4>
-        <table class="table table-striped">
+        <!-- Staff Table -->
+        <table class="table table-striped" id="staffTable">
             <thead>
             <tr>
                 <th scope="col">Staff ID</th>
                 <th scope="col">Name</th>
                 <th scope="col">Position</th>
                 <th scope="col">Contact</th>
-                <th scope="col">Action</th>
+                <th scope="col">Actions</th>
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>S001</td>
-                <td>John Doe</td>
-                <td>Agronomist</td>
-                <td>(123) 456-7890</td>
-                <td>
-                    <button class="btn btn-info btn-sm">Edit</button>
-                    <button class="btn btn-danger btn-sm">Delete</button>
-                </td>
-            </tr>
-            <tr>
-                <td>S002</td>
-                <td>Jane Smith</td>
-                <td>Field Technician</td>
-                <td>(234) 567-8901</td>
-                <td>
-                    <button class="btn btn-info btn-sm">Edit</button>
-                    <button class="btn btn-danger btn-sm">Delete</button>
-                </td>
-            </tr>
-            <tr>
-                <td>S003</td>
-                <td>Mike Johnson</td>
-                <td>Farm Manager</td>
-                <td>(345) 678-9012</td>
-                <td>
-                    <button class="btn btn-info btn-sm">Edit</button>
-                    <button class="btn btn-danger btn-sm">Delete</button>
-                </td>
-            </tr>
-            <tr>
-                <td>S004</td>
-                <td>Susan Lee</td>
-                <td>Logistics Coordinator</td>
-                <td>(456) 789-0123</td>
-                <td>
-                    <button class="btn btn-info btn-sm">Edit</button>
-                    <button class="btn btn-danger btn-sm">Delete</button>
-                </td>
-            </tr>
+            <!-- Dynamic content goes here -->
             </tbody>
         </table>
 
+        <!-- Add New Staff Form -->
         <h4>Add New Staff Member</h4>
         <form id="addStaffForm">
             <div class="mb-3">
@@ -92,8 +53,7 @@
     </section>
 </main>
 
-
-
+<script src="js/staff.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
