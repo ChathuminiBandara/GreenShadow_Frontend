@@ -42,15 +42,29 @@
         <form id="addEquipmentForm">
             <div class="mb-3">
                 <label for="equipmentName" class="form-label">Equipment Name</label>
-                <input type="text" class="form-control" id="equipmentName" required>
+                <select class="form-control" id="equipmentName" required>
+                    <option value="Tractor">Tractor</option>
+                    <option value="Plow">Plow</option>
+                    <option value="Harvester">Harvester</option>
+                    <option value="Sprayer">Sprayer</option>
+                </select>
             </div>
             <div class="mb-3">
                 <label for="equipmentType" class="form-label">Type</label>
-                <input type="text" class="form-control" id="equipmentType" required>
+                <select class="form-control" id="equipmentType" required>
+                    <option value="Mechanical">Mechanical</option>
+                    <option value="Electrical">Electrical</option>
+                    <option value="Hydraulic">Hydraulic</option>
+                    <option value="Manual">Manual</option>
+                </select>
             </div>
             <div class="mb-3">
                 <label for="purchaseDate" class="form-label">Purchase Date</label>
-                <input type="date" class="form-control" id="purchaseDate" required>
+                <select class="form-control" id="purchaseDate" required>
+                    <option value="2022-01-01">2022-01-01</option>
+                    <option value="2023-05-15">2023-05-15</option>
+                    <option value="2024-08-30">2024-08-30</option>
+                </select>
             </div>
             <div class="mb-3">
                 <label for="status" class="form-label">Status</label>
@@ -62,11 +76,19 @@
             </div>
             <div class="mb-3">
                 <label for="lastServiced" class="form-label">Last Serviced</label>
-                <input type="date" class="form-control" id="lastServiced" required>
+                <select class="form-control" id="lastServiced" required>
+                    <option value="2023-06-15">2023-06-15</option>
+                    <option value="2024-04-10">2024-04-10</option>
+                    <option value="2024-08-05">2024-08-05</option>
+                </select>
             </div>
             <div class="mb-3">
                 <label for="location" class="form-label">Location</label>
-                <input type="text" class="form-control" id="location" required>
+                <select class="form-control" id="location" required>
+                    <option value="Farm A">Farm A</option>
+                    <option value="Farm B">Farm B</option>
+                    <option value="Warehouse">Warehouse</option>
+                </select>
             </div>
             <button type="submit" class="btn btn-success">Add Equipment</button>
         </form>
@@ -78,6 +100,7 @@
 </script>
 
 <script src="js/Equipment.js"></script>
+<script src="js/StorageJS/EquipmentDATA.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
