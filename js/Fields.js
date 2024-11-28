@@ -1,50 +1,78 @@
 let fieldCount = 0; // Counter for Field IDs
 
+const apiUrl = 'https://your-backend-url.com/api/fields'; // Replace with your actual backend URL
+
+// Fetch fields data from server (for initial rendering and updates)
+const fetchFields = () => {
+    $.ajax({
+        url: apiUrl,
+        method: 'GET',
+        success: (response) => {
+            renderFields(response.fields); // Assuming the API returns an object with a 'fields' array
+        },
+        error: (err) => {
+            console.error('Error fetching fields:', err);
+        },
+    });
+};
+
 // Render the Fields Table
 const renderFields = (fields) => {
     const tableBody = $('#fieldTable tbody');
     tableBody.empty();
     fields.forEach((field, index) => {
         tableBody.append(`
-                <tr>
-                    <td>${field.id}</td>
-                    <td>${field.name}</td>
-                    <td>${field.location}</td>
-                    <td>${field.area}</td>
-                    <td>${field.crop}</td>
-                    <td>${field.irrigation}</td>
-                    <td>${field.soil}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" onclick="editField(${index})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteField(${index})">Delete</button>
-                    </td>
-                </tr>
-            `);
+            <tr>
+                <td>${field.id}</td>
+                <td>${field.name}</td>
+                <td>${field.location}</td>
+                <td>${field.area}</td>
+                <td>${field.crop}</td>
+                <td>${field.irrigation}</td>
+                <td>${field.soil}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" onclick="editField(${index})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteField(${index})">Delete</button>
+                </td>
+            </tr>
+        `);
     });
 };
 
-const fields = []; // Temporary storage for fields
-
+// Add a new field with image upload
 const addField = (e) => {
     e.preventDefault();
 
-    // Auto-generate Field ID
-    fieldCount++;
-    const newField = {
-        id: `F${String(fieldCount).padStart(3, '0')}`,
-        name: $('#fieldName').val(),
-        location: $('#location').val(),
-        area: $('#area').val(),
-        crop: $('#cropType').val(),
-        irrigation: $('#irrigationStatus').val(),
-        soil: $('#soilQuality').val(),
-    };
+    const formData = new FormData();
+    formData.append('name', $('#fieldName').val());
+    formData.append('location', $('#location').val());
+    formData.append('area', $('#area').val());
+    formData.append('crop', $('#cropType').val());
+    formData.append('irrigation', $('#irrigationStatus').val());
+    formData.append('soil', $('#soilQuality').val());
 
-    fields.push(newField); // Add new field to array
-    renderFields(fields); // Re-render table
-    $('#addFieldForm')[0].reset(); // Reset form
+    const fieldImage1 = $('#fieldImage1')[0].files[0];
+    const fieldImage2 = $('#fieldImage2')[0].files[0];
+    if (fieldImage1) formData.append('fieldImage1', fieldImage1);
+    if (fieldImage2) formData.append('fieldImage2', fieldImage2);
+
+    $.ajax({
+        url: apiUrl,
+        method: 'POST',
+        processData: false,
+        contentType: false,
+        data: formData,
+        success: (response) => {
+            fetchFields(); // Reload the fields data after adding a new one
+            $('#addFieldForm')[0].reset(); // Reset form
+        },
+        error: (err) => {
+            console.error('Error adding field:', err);
+        },
+    });
 };
 
+// Edit an existing field
 const editField = (index) => {
     const field = fields[index];
 
@@ -60,29 +88,55 @@ const editField = (index) => {
     $('#addFieldForm button').text('Update Field').off().click((e) => {
         e.preventDefault();
 
-        // Update field data
-        fields[index] = {
-            ...field,
-            name: $('#fieldName').val(),
-            location: $('#location').val(),
-            area: $('#area').val(),
-            crop: $('#cropType').val(),
-            irrigation: $('#irrigationStatus').val(),
-            soil: $('#soilQuality').val(),
-        };
+        const formData = new FormData();
+        formData.append('id', field.id);
+        formData.append('name', $('#fieldName').val());
+        formData.append('location', $('#location').val());
+        formData.append('area', $('#area').val());
+        formData.append('crop', $('#cropType').val());
+        formData.append('irrigation', $('#irrigationStatus').val());
+        formData.append('soil', $('#soilQuality').val());
 
-        renderFields(fields); // Re-render table
-        $('#addFieldForm')[0].reset(); // Reset form
-        $('#addFieldForm button').text('Add Field').off().click(addField); // Reset button
+        const fieldImage1 = $('#fieldImage1')[0].files[0];
+        const fieldImage2 = $('#fieldImage2')[0].files[0];
+        if (fieldImage1) formData.append('fieldImage1', fieldImage1);
+        if (fieldImage2) formData.append('fieldImage2', fieldImage2);
+
+        $.ajax({
+            url: `${apiUrl}/${field.id}`,
+            method: 'PUT',
+            processData: false,
+            contentType: false,
+            data: formData,
+            success: (response) => {
+                fetchFields(); // Reload the fields data after updating
+                $('#addFieldForm')[0].reset(); // Reset form
+                $('#addFieldForm button').text('Add Field').off().click(addField); // Reset button
+            },
+            error: (err) => {
+                console.error('Error updating field:', err);
+            },
+        });
     });
 };
 
+// Delete a field
 const deleteField = (index) => {
-    fields.splice(index, 1); // Remove field from array
-    renderFields(fields); // Re-render table
+    const field = fields[index];
+
+    $.ajax({
+        url: `${apiUrl}/${field.id}`,
+        method: 'DELETE',
+        success: (response) => {
+            fetchFields(); // Reload the fields data after deleting
+        },
+        error: (err) => {
+            console.error('Error deleting field:', err);
+        },
+    });
 };
 
 $(document).ready(() => {
-    renderFields(fields); // Initialize empty table
+    fetchFields(); // Initialize fields by fetching data from the backend
     $('#addFieldForm').submit(addField); // Bind form submission
 });
