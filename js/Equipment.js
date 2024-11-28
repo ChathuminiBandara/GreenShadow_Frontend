@@ -1,87 +1,62 @@
-let equipmentCount = 0; // Counter for Equipment IDs
-
-const renderTable = (equipmentList) => {
-    const tableBody = $('#equipmentTable tbody');
-    tableBody.empty();
-    equipmentList.forEach((equipment, index) => {
-        tableBody.append(`
-                <tr>
-                    <td>${equipment.id}</td>
-                    <td>${equipment.name}</td>
-                    <td>${equipment.type}</td>
-                    <td>${equipment.purchaseDate}</td>
-                    <td>${equipment.status}</td>
-                    <td>${equipment.lastServiced}</td>
-                    <td>${equipment.location}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" onclick="editEquipment(${index})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteEquipment(${index})">Delete</button>
-                    </td>
-                </tr>
-            `);
+$(document).ready(function () {
+    // Fetch and load existing data using AJAX (GET request)
+    $.ajax({
+        url: '/api/equipment', // Spring Boot endpoint to fetch data
+        type: 'GET',
+        success: function (data) {
+            // If data is fetched successfully, populate the table
+            data.forEach(equipment => {
+                appendEquipmentToTable(equipment);
+            });
+        },
+        error: function (err) {
+            console.error('Error fetching equipment data:', err);
+        }
     });
-};
 
-const equipmentList = []; // Temporary storage for equipment
+    // Listen for form submission
+    $('#addEquipmentForm').on('submit', function (e) {
+        e.preventDefault(); // Prevent default form submission behavior
 
-const addEquipment = (e) => {
-    e.preventDefault();
-
-    // Generate new Equipment ID
-    equipmentCount++;
-    const newEquipment = {
-        id: `E${String(equipmentCount).padStart(3, '0')}`,
-        name: $('#equipmentName').val(),
-        type: $('#equipmentType').val(),
-        purchaseDate: $('#purchaseDate').val(),
-        status: $('#status').val(),
-        lastServiced: $('#lastServiced').val(),
-        location: $('#location').val(),
-    };
-
-    equipmentList.push(newEquipment); // Add equipment to the list
-    renderTable(equipmentList); // Re-render the table
-    $('#addEquipmentForm')[0].reset(); // Reset the form
-};
-
-const editEquipment = (index) => {
-    const equipment = equipmentList[index];
-
-    // Pre-fill the form with the selected equipment data
-    $('#equipmentName').val(equipment.name);
-    $('#equipmentType').val(equipment.type);
-    $('#purchaseDate').val(equipment.purchaseDate);
-    $('#status').val(equipment.status);
-    $('#lastServiced').val(equipment.lastServiced);
-    $('#location').val(equipment.location);
-
-    // Change button text to "Update Equipment"
-    $('#addEquipmentForm button').text('Update Equipment').off().click((e) => {
-        e.preventDefault();
-
-        // Update equipment details
-        equipmentList[index] = {
-            ...equipment,
-            name: $('#equipmentName').val(),
-            type: $('#equipmentType').val(),
+        // Get form data
+        var equipmentData = {
+            equipmentName: $('#equipmentName').val(),
+            equipmentType: $('#equipmentType').val(),
             purchaseDate: $('#purchaseDate').val(),
             status: $('#status').val(),
             lastServiced: $('#lastServiced').val(),
-            location: $('#location').val(),
+            location: $('#location').val()
         };
 
-        renderTable(equipmentList); // Re-render the table
-        $('#addEquipmentForm')[0].reset(); // Reset the form
-        $('#addEquipmentForm button').text('Add Equipment').off().click(addEquipment); // Restore default button behavior
+        // Send data to the server using AJAX (POST request)
+        $.ajax({
+            url: '/api/equipment', // Spring Boot endpoint to add new equipment
+            type: 'POST',
+            data: JSON.stringify(equipmentData),  // Sending data as a JSON string
+            contentType: 'application/json',  // Setting content type to JSON
+            success: function (response) {
+                // If successful, append new equipment to the table
+                appendEquipmentToTable(response);  // Assuming the server returns the created equipment
+                $('#addEquipmentForm')[0].reset();  // Reset the form after submission
+            },
+            error: function (err) {
+                console.error('Error adding new equipment:', err);
+            }
+        });
     });
-};
 
-const deleteEquipment = (index) => {
-    equipmentList.splice(index, 1); // Remove equipment from the list
-    renderTable(equipmentList); // Re-render the table
-};
-
-$(document).ready(() => {
-    renderTable(equipmentList); // Render empty table on load
-    $('#addEquipmentForm').submit(addEquipment); // Bind form submission
+    // Function to append new equipment to the table
+    function appendEquipmentToTable(equipment) {
+        var row = `<tr>
+                        <td>${equipment.equipmentId}</td>
+                        <td>${equipment.equipmentName}</td>
+                        <td>${equipment.equipmentType}</td>
+                        <td>${equipment.purchaseDate}</td>
+                        <td>${equipment.status}</td>
+                        <td>${equipment.lastServiced}</td>
+                        <td>${equipment.location}</td>
+                        <td><button class="btn btn-warning">Edit</button> <button class="btn btn-danger">Delete</button></td>
+                    </tr>`;
+        $('#equipmentTable tbody').append(row);
+    }
 });
