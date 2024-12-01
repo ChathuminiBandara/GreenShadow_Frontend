@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import Fields from './pages/Fields';
-import Crops from './pages/Crops';
+import Crops from './pages/CropsModel';
 import Staff from './pages/Staff';
-import Equipment from './pages/Equipment';
-import Vehicles from './pages/Vehicles';
+import Equipment from './pages/EquipmentModel';
+import Vehicles from './pages/VehiclesModel';
 import MonitoringLog from './pages/MonitoringLog';
 
 function App() {
