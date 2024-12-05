@@ -1,19 +1,15 @@
-body {
-    font-family: Arial, sans-serif;
-}
+/* File: css/styles.css */
 
-h1, h2 {
-    color: #2E7D32;
+/* Custom Styles (Optional) */
+
+/* Example: Centering the form vertically */
+body, html {
+    height: 100%;
 }
 
 .container {
-    margin-top: 20px;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
-
-footer {
-    position: relative;
-    bottom: 0;
-    width: 100%;
-    padding: 10px 0;
-}
-
