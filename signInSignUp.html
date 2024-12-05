@@ -60,7 +60,7 @@
         <!--signUp form-->
         <form class="signUp-form" id="signUp-form">
             <div class="form-title">
-                <span>Sign Up</span>
+                <span></span>
             </div>
             <div class="form-inputs">
                 <div class="input-box">
@@ -68,13 +68,27 @@
                     <i class="bx bx-envelope icon"></i>
                 </div>
                 <div class="input-box">
-                    <input type="text" class="input-field" placeholder="UserName" required>
-                    <i class="bx bx-user icon"></i>
-                </div>
-                <div class="input-box">
                     <input type="password" class="input-field" placeholder="Password" required>
                     <i class="bx bx-lock-alt icon"></i>
                 </div>
+                <div class="input-box">
+                    <input type="password" class="input-field" placeholder="Re Enter Password" required>
+                    <i class="bx bx-lock-alt icon"></i>
+                </div>
+                <div class="input-group">
+                    <label for="role" style="color: #ddd; font-size: 16px; font-weight: 500; margin-bottom: 5px; display: block; transition: color 0.3s ease;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#ddd'">Role</label>
+                    <div class="form-select-wrapper">
+                        <select id="role" class="form-select" required>
+                            <option value="MANAGER">MANAGER</option>
+                            <option value="ADMINISTRATIVE">ADMINISTRATIVE</option>
+                            <option value="SCIENTIST">SCIENTIST</option>
+                        </select>
+                        <i class="bx bx-chevron-down icon"></i> <!-- Optional: Add an icon for dropdown -->
+                    </div>
+                </div>
+
+
+
                 <div class="forgot-pass">
                     <a href="#">Forgot Password?</a>
                 </div>
@@ -102,13 +116,13 @@
         e.preventDefault();
         // Simulate a successful login
         localStorage.setItem('authToken', 'sample-token'); // Store a dummy token
-        window.location.href = 'index.html'; // Redirect to index.html
+        window.location.href = 'dashboard.html'; // Redirect to index.html
     });
     document.getElementById('signUp-form').addEventListener('submit', function(e) {
         e.preventDefault();
         // Simulate a successful login
         localStorage.setItem('authToken', 'sample-token'); // Store a dummy token
-        window.location.href = 'index.html'; // Redirect to index.html
+        window.location.href = 'dashboard.html'; // Redirect to index.html
     });
 </script>
 
