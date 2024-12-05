@@ -1,0 +1,686 @@
+<!-- File: dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Green Shadow - Dashboard</title>
+  <!-- jQuery CDN -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Custom CSS -->
+  <style>
+    /* Reset some default styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+    }
+
+    /* Navbar Styles */
+    .navbar {
+      background-color: #28a745;
+      color: #fff;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .navbar button {
+      background-color: transparent;
+      border: 1px solid #fff;
+      color: #fff;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    .navbar button:hover {
+      background-color: #fff;
+      color: #28a745;
+    }
+
+    /* Container Styles */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    h3 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    /* Tabs Styles */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #ccc;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      background-color: #e9e9e9;
+      margin-right: 5px;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+
+    .tab.active {
+      background-color: #fff;
+      border-bottom: 2px solid #fff;
+      font-weight: bold;
+    }
+
+    /* Content Styles */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Table Styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    /* Button Styles */
+    .btn {
+      padding: 8px 12px;
+      margin-right: 5px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+
+    .btn-warning {
+      background-color: #ffc107;
+      color: #fff;
+    }
+
+    .btn-warning:hover {
+      background-color: #e0a800;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background-color: #c82333;
+    }
+
+    /* Modal Styles */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1000; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 10% auto; /* 10% from the top and centered */
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%; /* Could be more or less, depending on screen size */
+      border-radius: 8px;
+      position: relative;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      position: absolute;
+      right: 20px;
+      top: 10px;
+      cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* Form Styles */
+    .modal form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal label {
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .modal input, .modal select {
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .modal input:invalid, .modal select:invalid {
+      border-color: #dc3545;
+    }
+
+    .modal .error {
+      color: #dc3545;
+      font-size: 12px;
+      margin-top: -10px;
+      margin-bottom: 10px;
+    }
+
+    /* Alert Styles */
+    .alert {
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      position: relative;
+    }
+
+    .alert-success {
+      color: #155724;
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+    }
+
+    .alert-danger {
+      color: #721c24;
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+    }
+
+    .alert .close-alert {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      color: inherit;
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .alert .close-alert:hover {
+      color: #000;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      .modal-content {
+        width: 95%;
+      }
+
+      .tabs {
+        flex-direction: column;
+      }
+
+      .tab {
+        margin-bottom: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+<!-- Navbar -->
+<div class="navbar">
+  <a href="#">Green Shadow</a>
+  <button id="logoutBtn">Logout</button>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+  <h3>Dashboard</h3>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="fields">Fields</div>
+    <div class="tab" data-tab="crops">Crops</div>
+    <div class="tab" data-tab="staff">Staff</div>
+    <div class="tab" data-tab="vehicles">Vehicles</div>
+    <div class="tab" data-tab="equipment">Equipment</div>
+  </div>
+
+  <!-- Tab Contents -->
+
+  <!-- Fields Tab -->
+  <div class="tab-content active" id="fields">
+    <div id="fieldsAlert"></div>
+    <button class="btn btn-primary" id="addFieldBtn">Add New Field</button>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Field Name</th>
+        <th>Location</th>
+        <th>Size</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody id="fieldsTableBody">
+      <!-- Dynamic Content -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Crops Tab -->
+  <div class="tab-content" id="crops">
+    <div id="cropsAlert"></div>
+    <button class="btn btn-primary" id="addCropBtn">Add New Crop</button>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Crop Name</th>
+        <th>Planting Date</th>
+        <th>Harvest Date</th>
+        <th>Field</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody id="cropsTableBody">
+      <!-- Dynamic Content -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Staff Tab -->
+  <div class="tab-content" id="staff">
+    <div id="staffAlert"></div>
+    <button class="btn btn-primary" id="addStaffBtn">Add New Staff</button>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Contact</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody id="staffTableBody">
+      <!-- Dynamic Content -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Vehicles Tab -->
+  <div class="tab-content" id="vehicles">
+    <div id="vehiclesAlert"></div>
+    <button class="btn btn-primary" id="addVehicleBtn">Add New Vehicle</button>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Type</th>
+        <th>Model</th>
+        <th>License Plate</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody id="vehiclesTableBody">
+      <!-- Dynamic Content -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Equipment Tab -->
+  <div class="tab-content" id="equipment">
+    <div id="equipmentAlert"></div>
+    <button class="btn btn-primary" id="addEquipmentBtn">Add New Equipment</button>
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody id="equipmentTableBody">
+      <!-- Dynamic Content -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modals -->
+
+<!-- Add Field Modal -->
+<div class="modal" id="addFieldModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Add New Field</h2>
+    <div id="addFieldAlert"></div>
+    <form id="addFieldForm">
+      <label for="fieldName">Field Name</label>
+      <input type="text" id="fieldName" name="fieldName" required>
+      <span class="error" id="fieldNameError"></span>
+
+      <label for="location">Location</label>
+      <input type="text" id="location" name="location" required>
+      <span class="error" id="locationError"></span>
+
+      <label for="size">Size</label>
+      <input type="text" id="size" name="size" required>
+      <span class="error" id="sizeError"></span>
+
+      <button type="submit" class="btn btn-primary">Add Field</button>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Field Modal -->
+<div class="modal" id="editFieldModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Edit Field</h2>
+    <div id="editFieldAlert"></div>
+    <form id="editFieldForm">
+      <input type="hidden" id="editFieldId" name="editFieldId">
+
+      <label for="editFieldName">Field Name</label>
+      <input type="text" id="editFieldName" name="editFieldName" required>
+      <span class="error" id="editFieldNameError"></span>
+
+      <label for="editLocation">Location</label>
+      <input type="text" id="editLocation" name="editLocation" required>
+      <span class="error" id="editLocationError"></span>
+
+      <label for="editSize">Size</label>
+      <input type="text" id="editSize" name="editSize" required>
+      <span class="error" id="editSizeError"></span>
+
+      <button type="submit" class="btn btn-primary">Update Field</button>
+    </form>
+  </div>
+</div>
+
+<!-- Add Crop Modal -->
+<div class="modal" id="addCropModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Add New Crop</h2>
+    <div id="addCropAlert"></div>
+    <form id="addCropForm">
+      <label for="cropName">Crop Name</label>
+      <input type="text" id="cropName" name="cropName" required>
+      <span class="error" id="cropNameError"></span>
+
+      <label for="plantingDate">Planting Date</label>
+      <input type="date" id="plantingDate" name="plantingDate" required>
+      <span class="error" id="plantingDateError"></span>
+
+      <label for="harvestDate">Harvest Date</label>
+      <input type="date" id="harvestDate" name="harvestDate" required>
+      <span class="error" id="harvestDateError"></span>
+
+      <label for="cropField">Field</label>
+      <select id="cropField" name="cropField" required>
+        <option value="" disabled selected>Select Field</option>
+        <!-- Dynamic Options -->
+      </select>
+      <span class="error" id="cropFieldError"></span>
+
+      <button type="submit" class="btn btn-primary">Add Crop</button>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Crop Modal -->
+<div class="modal" id="editCropModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Edit Crop</h2>
+    <div id="editCropAlert"></div>
+    <form id="editCropForm">
+      <input type="hidden" id="editCropId" name="editCropId">
+
+      <label for="editCropName">Crop Name</label>
+      <input type="text" id="editCropName" name="editCropName" required>
+      <span class="error" id="editCropNameError"></span>
+
+      <label for="editPlantingDate">Planting Date</label>
+      <input type="date" id="editPlantingDate" name="editPlantingDate" required>
+      <span class="error" id="editPlantingDateError"></span>
+
+      <label for="editHarvestDate">Harvest Date</label>
+      <input type="date" id="editHarvestDate" name="editHarvestDate" required>
+      <span class="error" id="editHarvestDateError"></span>
+
+      <label for="editCropField">Field</label>
+      <select id="editCropField" name="editCropField" required>
+        <option value="" disabled selected>Select Field</option>
+        <!-- Dynamic Options -->
+      </select>
+      <span class="error" id="editCropFieldError"></span>
+
+      <button type="submit" class="btn btn-primary">Update Crop</button>
+    </form>
+  </div>
+</div>
+
+<!-- Add Staff Modal -->
+<div class="modal" id="addStaffModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Add New Staff</h2>
+    <div id="addStaffAlert"></div>
+    <form id="addStaffForm">
+      <label for="staffName">Name</label>
+      <input type="text" id="staffName" name="staffName" required>
+      <span class="error" id="staffNameError"></span>
+
+      <label for="staffRole">Role</label>
+      <input type="text" id="staffRole" name="staffRole" required>
+      <span class="error" id="staffRoleError"></span>
+
+      <label for="staffContact">Contact</label>
+      <input type="text" id="staffContact" name="staffContact" required>
+      <span class="error" id="staffContactError"></span>
+
+      <button type="submit" class="btn btn-primary">Add Staff</button>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Staff Modal -->
+<div class="modal" id="editStaffModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Edit Staff</h2>
+    <div id="editStaffAlert"></div>
+    <form id="editStaffForm">
+      <input type="hidden" id="editStaffId" name="editStaffId">
+
+      <label for="editStaffName">Name</label>
+      <input type="text" id="editStaffName" name="editStaffName" required>
+      <span class="error" id="editStaffNameError"></span>
+
+      <label for="editStaffRole">Role</label>
+      <input type="text" id="editStaffRole" name="editStaffRole" required>
+      <span class="error" id="editStaffRoleError"></span>
+
+      <label for="editStaffContact">Contact</label>
+      <input type="text" id="editStaffContact" name="editStaffContact" required>
+      <span class="error" id="editStaffContactError"></span>
+
+      <button type="submit" class="btn btn-primary">Update Staff</button>
+    </form>
+  </div>
+</div>
+
+<!-- Add Vehicle Modal -->
+<div class="modal" id="addVehicleModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Add New Vehicle</h2>
+    <div id="addVehicleAlert"></div>
+    <form id="addVehicleForm">
+      <label for="vehicleType">Type</label>
+      <input type="text" id="vehicleType" name="vehicleType" required>
+      <span class="error" id="vehicleTypeError"></span>
+
+      <label for="vehicleModel">Model</label>
+      <input type="text" id="vehicleModel" name="vehicleModel" required>
+      <span class="error" id="vehicleModelError"></span>
+
+      <label for="licensePlate">License Plate</label>
+      <input type="text" id="licensePlate" name="licensePlate" required>
+      <span class="error" id="licensePlateError"></span>
+
+      <button type="submit" class="btn btn-primary">Add Vehicle</button>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Vehicle Modal -->
+<div class="modal" id="editVehicleModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Edit Vehicle</h2>
+    <div id="editVehicleAlert"></div>
+    <form id="editVehicleForm">
+      <input type="hidden" id="editVehicleId" name="editVehicleId">
+
+      <label for="editVehicleType">Type</label>
+      <input type="text" id="editVehicleType" name="editVehicleType" required>
+      <span class="error" id="editVehicleTypeError"></span>
+
+      <label for="editVehicleModel">Model</label>
+      <input type="text" id="editVehicleModel" name="editVehicleModel" required>
+      <span class="error" id="editVehicleModelError"></span>
+
+      <label for="editLicensePlate">License Plate</label>
+      <input type="text" id="editLicensePlate" name="editLicensePlate" required>
+      <span class="error" id="editLicensePlateError"></span>
+
+      <button type="submit" class="btn btn-primary">Update Vehicle</button>
+    </form>
+  </div>
+</div>
+
+<!-- Add Equipment Modal -->
+<div class="modal" id="addEquipmentModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Add New Equipment</h2>
+    <div id="addEquipmentAlert"></div>
+    <form id="addEquipmentForm">
+      <label for="equipmentName">Name</label>
+      <input type="text" id="equipmentName" name="equipmentName" required>
+      <span class="error" id="equipmentNameError"></span>
+
+      <label for="equipmentType">Type</label>
+      <input type="text" id="equipmentType" name="equipmentType" required>
+      <span class="error" id="equipmentTypeError"></span>
+
+      <label for="equipmentStatus">Status</label>
+      <select id="equipmentStatus" name="equipmentStatus" required>
+        <option value="" disabled selected>Select Status</option>
+        <option value="Available">Available</option>
+        <option value="In Use">In Use</option>
+        <option value="Under Maintenance">Under Maintenance</option>
+      </select>
+      <span class="error" id="equipmentStatusError"></span>
+
+      <button type="submit" class="btn btn-primary">Add Equipment</button>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Equipment Modal -->
+<div class="modal" id="editEquipmentModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Edit Equipment</h2>
+    <div id="editEquipmentAlert"></div>
+    <form id="editEquipmentForm">
+      <input type="hidden" id="editEquipmentId" name="editEquipmentId">
+
+      <label for="editEquipmentName">Name</label>
+      <input type="text" id="editEquipmentName" name="editEquipmentName" required>
+      <span class="error" id="editEquipmentNameError"></span>
+
+      <label for="editEquipmentType">Type</label>
+      <input type="text" id="editEquipmentType" name="editEquipmentType" required>
+      <span class="error" id="editEquipmentTypeError"></span>
+
+      <label for="editEquipmentStatus">Status</label>
+      <select id="editEquipmentStatus" name="editEquipmentStatus" required>
+        <option value="" disabled selected>Select Status</option>
+        <option value="Available">Available</option>
+        <option value="In Use">In Use</option>
+        <option value="Under Maintenance">Under Maintenance</option>
+      </select>
+      <span class="error" id="editEquipmentStatusError"></span>
+
+      <button type="submit" class="btn btn-primary">Update Equipment</button>
+    </form>
+  </div>
+</div>
+
+<!-- Custom JavaScript -->
+<script src="js/scripts.js"></script>
+</body>
+</html>
