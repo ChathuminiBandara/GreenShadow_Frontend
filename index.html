@@ -1,89 +1,155 @@
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Crop Monitoring System - SPA</title>
-            <link rel="stylesheet" href="css/styles.css">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-            <style>
-                body {
-                    display: flex;
-                }
+<!-- File: index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Green Shadow - Login & Sign-Up</title>
+    <!-- Include any required CSS here -->
+    <style>
+        /* Basic styles for the forms and layout */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
 
-                nav {
-                    width: 250px;
-                    background-color: #f8f9fa;
-                    height: 100vh;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    overflow-y: auto;
-                    padding-top: 20px;
-                }
+        .auth-container {
+            background-color: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
 
-                nav ul {
-                    list-style-type: none;
-                    padding: 0;
-                }
+        .auth-container h2 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
 
-                nav ul li {
-                    margin: 10px 0;
-                }
+        .auth-container form {
+            display: flex;
+            flex-direction: column;
+        }
 
-                nav ul li a {
-                    text-decoration: none;
-                    color: #000;
-                    display: block;
-                    padding: 10px 15px;
-                    border-radius: 5px;
-                }
+        .auth-container label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
 
-                nav ul li a:hover {
-                    background-color: #28a745;
-                    color: #fff;
-                }
+        .auth-container input, .auth-container select {
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
 
-                main {
-                    margin-left: 260px; /* Match the width of the sidebar */
-                    padding: 20px;
-                    flex-grow: 1;
-                }
-            </style>
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        </head>
-        <body>
-        <nav>
-            <ul>
-                <li><a href="#" onclick="loadContent('index.html')">Home</a></li>
-                <li><a href="#" onclick="loadContent('Fields.html')">Fields</a></li>
-                <li><a href="#" onclick="loadContent('Crops.html')">Crops</a></li>
-                <li><a href="#" onclick="loadContent('Staff.html')">Staff</a></li>
-                <li><a href="#" onclick="loadContent('Vehicles.html')">Vehicles</a></li>
-                <li><a href="#" onclick="loadContent('Equipment.html')">Equipment</a></li>
-                <li><a href="#" onclick="loadContent('Logs.html')">Logs</a></li>
-            </ul>
-        </nav>
+        .auth-container button {
+            padding: 10px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
 
-        <main id="main-content">
-            <header class="bg-success text-white p-3">
-                <h1 class="text-center">Green Shadow Crop Monitoring System</h1>
-            </header>
-            <section class="text-center mt-4">
-                <p class="lead">Welcome to the Green Shadow Crop Monitoring System! Select a section to get started.</p>
-                <p>Efficient crop management begins here. Track crop health, monitor field progress, and stay on top of your harvest season!</p>
-            </section>
-        </main>
+        .auth-container button:hover {
+            background-color: #218838;
+        }
 
-        <script>
-            function loadContent(page) {
-                $('#main-content').load(page, function(response, status, xhr) {
-                    if (status == "error") {
-                        alert("Error loading page: " + xhr.status + " " + xhr.statusText);
-                    }
-                });
-            }
-        </script>
-        </body>
-        </html>
+        .toggle-link {
+            text-align: center;
+            margin-top: 10px;
+        }
 
+        .toggle-link a {
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .toggle-link a:hover {
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .close-alert {
+            float: right;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="auth-container">
+    <!-- Sign-In Form -->
+    <div id="signin-form">
+        <h2>Sign In</h2>
+        <div id="signinAlert"></div>
+        <form id="signinForm">
+            <label for="signinUsername">Username</label>
+            <input type="text" id="signinUsername" name="username" required>
+
+            <label for="signinPassword">Password</label>
+            <input type="password" id="signinPassword" name="password" required>
+
+            <button type="submit">Sign In</button>
+        </form>
+        <div class="toggle-link">
+            Don't have an account? <a id="showSignup">Sign Up</a>
+        </div>
+    </div>
+
+    <!-- Sign-Up Form -->
+    <div id="signup-form" style="display: none;">
+        <h2>Sign Up</h2>
+        <div id="signupAlert"></div>
+        <form id="signupForm">
+            <label for="signupUsername">Username</label>
+            <input type="text" id="signupUsername" name="username" required>
+
+            <label for="signupEmail">Email</label>
+            <input type="email" id="signupEmail" name="email" required>
+
+            <label for="signupPassword">Password</label>
+            <input type="password" id="signupPassword" name="password" required>
+
+            <label for="signupRole">Role</label>
+            <select id="signupRole" name="role" required>
+                <option value="" disabled selected>Select Role</option>
+                <option value="USER">User</option>
+                <option value="ADMIN">Admin</option>
+            </select>
+
+            <button type="submit">Sign Up</button>
+        </form>
+        <div class="toggle-link">
+            Already have an account? <a id="showSignin">Sign In</a>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery CDN -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Custom JavaScript -->
+<script src="js/scripts.js"></script>
+
+</body>
+</html>
