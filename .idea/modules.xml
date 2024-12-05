@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/GreenShadow_Frontend.iml" filepath="$PROJECT_DIR$/GreenShadow_Frontend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/green-shadow-frontend.iml" filepath="$PROJECT_DIR$/.idea/green-shadow-frontend.iml" />
     </modules>
   </component>
 </project>
