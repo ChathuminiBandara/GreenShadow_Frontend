@@ -65,7 +65,7 @@ $(document).ready(function() {
 
         // AJAX POST request to signin
         $.ajax({
-            url: 'http://localhost:8080/api/auth/signin',
+            url: 'http://localhost:8080/green-shadow/api/v1/auth/signin',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -114,7 +114,7 @@ $(document).ready(function() {
 
         // AJAX POST request to signup
         $.ajax({
-            url: 'http://localhost:8080/api/auth/signup',
+            url: 'http://localhost:8080/green-shadow/api/v1/auth/signup',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -164,7 +164,8 @@ $(document).ready(function() {
         $(this).parent('.alert').remove();
     });
 });
-$(document).ready(function() {
+
+    $(document).ready(function() {
 
     /**
      * Function to display custom alerts.
@@ -232,8 +233,9 @@ $(document).ready(function() {
      */
     function checkAuthentication() {
         console.log(window.location)
+        console.log(window.location.pathname)
         if (!getToken()) {
-            if(window.location.pathname !== "/green-shadow-frontend/index.html"){
+            if(window.location.pathname !== "/Green-Shadow-Frontend/index.html"){
                 window.location.href = 'index.html'; // Redirect to login page
             }
         }
@@ -270,11 +272,17 @@ $(document).ready(function() {
      * Function to fetch and display Fields data.
      */
     function fetchFields() {
+        const token = getToken();
+        if (!token) {
+            showAlert('fieldsAlert', 'Authentication token is missing. Please log in.', 'danger');
+            return;
+        }
+
         $.ajax({
-            url: 'http://localhost:8080/api/fields',
+            url: 'http://localhost:8080/green-shadow/api/v1/fields',
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${getToken()}`
+                'Authorization': `Bearer ${token}`
             },
             success: function(data) {
                 populateFieldsTable(data);
@@ -286,6 +294,7 @@ $(document).ready(function() {
         });
     }
 
+
     /**
      * Function to populate Fields table.
      * @param {Array} fields - Array of field objects.
@@ -295,21 +304,23 @@ $(document).ready(function() {
         tbody.empty();
 
         if (fields.length === 0) {
-            tbody.append('<tr><td colspan="5" style="text-align:center;">No fields available.</td></tr>');
+            tbody.append('<tr><td colspan="7" style="text-align:center;">No fields available.</td></tr>');
             return;
         }
 
         fields.forEach(field => {
             const row = `<tr>
-                            <td>${field.id}</td>
-                            <td>${field.name}</td>
-                            <td>${field.location}</td>
-                            <td>${field.landSize}</td>
-                            <td>
-                                <button class="btn btn-warning edit-field-btn" data-id="${field.id}">Edit</button>
-                                <button class="btn btn-danger delete-field-btn" data-id="${field.id}">Delete</button>
-                            </td>
-                         </tr>`;
+                        <td>${field.id}</td>
+                        <td>${field.name}</td>
+                        <td>${field.landSize}</td>
+                        <td>${field.location}</td>
+                        <td><img src="data:image/png;base64,${field.fieldImage1}" alt="Image 1" style="max-width: 50px; max-height: 50px;"></td>
+                        <td><img src="data:image/png;base64,${field.fieldImage2}" alt="Image 2" style="max-width: 50px; max-height: 50px;"></td>
+                        <td>
+                            <button class="btn btn-warning edit-field-btn" data-id="${field.id}">Edit</button>
+                            <button class="btn btn-danger delete-field-btn" data-id="${field.id}">Delete</button>
+                        </td>
+                     </tr>`;
             tbody.append(row);
         });
     }
@@ -324,66 +335,28 @@ $(document).ready(function() {
     /**
      * Event listener for Add Field form submission.
      */
-// Event listener for Add Field form submission.
     $('#addFieldForm').on('submit', function(e) {
         e.preventDefault();
 
-        // Simple validation
-        let isValid = true;
-
-        const name = $('#fieldName').val().trim();
-        const location = $('#location').val().trim();
-        const size = $('#size').val().trim();
-
-        if (name === '') {
-            $('#fieldNameError').text('Field Name is required.');
-            $('#fieldName').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#fieldNameError').text('');
-            $('#fieldName').css('border-color', '#ccc');
-        }
-
-        if (location === '') {
-            $('#locationError').text('Location is required.');
-            $('#location').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#locationError').text('');
-            $('#location').css('border-color', '#ccc');
-        }
-
-        if (size === '') {
-            $('#sizeError').text('Size is required.');
-            $('#size').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#sizeError').text('');
-            $('#size').css('border-color', '#ccc');
-        }
-
+        let isValid = validateForm('#addFieldForm', ['fieldName', 'location', 'size']);
         if (!isValid) return;
 
-        // Prepare data with correct field name
-        const data = {
-            name: name, // Changed from fieldName to name
-            location: location,
-            landSize: size
-        };
+        console.log(this)
+        const formData = new FormData(this);
 
         // AJAX POST request to add field
         $.ajax({
-            url: 'http://localhost:8080/api/fields',
+            url: 'http://localhost:8080/green-shadow/api/v1/fields',
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${getToken()}`
             },
-            contentType: 'application/json',
-            data: JSON.stringify(data),
+            processData: false,
+            contentType: false,
+            data: formData,
             success: function(response) {
                 showAlert('addFieldAlert', 'Field added successfully!', 'success');
                 fetchFields();
-                // Close modal after short delay
                 setTimeout(() => {
                     $('#addFieldModal').hide();
                     clearForm($('#addFieldForm'));
@@ -397,16 +370,14 @@ $(document).ready(function() {
         });
     });
 
-
     /**
      * Event delegation for Edit Field buttons.
      */
     $(document).on('click', '.edit-field-btn', function() {
         const fieldId = $(this).data('id');
 
-        // Fetch field details
         $.ajax({
-            url: `http://localhost:8080/api/fields/${fieldId}`,
+            url: `http://localhost:8080/green-shadow/api/v1/fields/${fieldId}`,
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${getToken()}`
@@ -431,63 +402,24 @@ $(document).ready(function() {
     $('#editFieldForm').on('submit', function(e) {
         e.preventDefault();
 
-        // Simple validation
-        let isValid = true;
-
-        const fieldId = $('#editFieldId').val();
-        const fieldName = $('#editFieldName').val().trim();
-        const location = $('#editLocation').val().trim();
-        const size = $('#editSize').val().trim();
-
-        if (fieldName === '') {
-            $('#editFieldNameError').text('Field Name is required.');
-            $('#editFieldName').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editFieldNameError').text('');
-            $('#editFieldName').css('border-color', '#ccc');
-        }
-
-        if (location === '') {
-            $('#editLocationError').text('Location is required.');
-            $('#editLocation').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editLocationError').text('');
-            $('#editLocation').css('border-color', '#ccc');
-        }
-
-        if (size === '') {
-            $('#editSizeError').text('Size is required.');
-            $('#editSize').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editSizeError').text('');
-            $('#editSize').css('border-color', '#ccc');
-        }
-
+        let isValid = validateForm('#editFieldForm', ['editFieldName', 'editLocation', 'editSize']);
         if (!isValid) return;
 
-        // Prepare data
-        const data = {
-            name: fieldName,
-            location: location,
-            landSize: size
-        };
+        const formData = new FormData(this);
 
-        // AJAX PUT request to update field
+        const fieldId = $('#editFieldId').val();
         $.ajax({
-            url: `http://localhost:8080/api/fields/${fieldId}`,
+            url: `http://localhost:8080/green-shadow/api/v1/fields/${fieldId}`,
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${getToken()}`
             },
-            contentType: 'application/json',
-            data: JSON.stringify(data),
+            processData: false,
+            contentType: false,
+            data: formData,
             success: function(response) {
                 showAlert('editFieldAlert', 'Field updated successfully!', 'success');
                 fetchFields();
-                // Close modal after short delay
                 setTimeout(() => {
                     $('#editFieldModal').hide();
                     clearForm($('#editFieldForm'));
@@ -507,9 +439,8 @@ $(document).ready(function() {
     $(document).on('click', '.delete-field-btn', function() {
         const fieldId = $(this).data('id');
         if (confirm('Are you sure you want to delete this field?')) {
-            // AJAX DELETE request to delete field
             $.ajax({
-                url: `http://localhost:8080/api/fields/${fieldId}`,
+                url: `http://localhost:8080/green-shadow/api/v1/fields/${fieldId}`,
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${getToken()}`
@@ -527,816 +458,890 @@ $(document).ready(function() {
     });
 
     /**
-     * Function to fetch and display Crops data.
+     * Utility to validate form fields.
      */
-    function fetchCrops() {
-        $.ajax({
-            url: 'http://localhost:8080/api/crops',
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            success: function(data) {
-                populateCropsTable(data);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch crops.';
-                showAlert('cropsAlert', error, 'danger');
+    function validateForm(formSelector, fieldIds) {
+        let isValid = true;
+
+        fieldIds.forEach(id => {
+            const value = $(`${formSelector} #${id}`).val().trim();
+            if (!value) {
+                $(`#${id}Error`).text(`${id} is required.`);
+                $(`#${id}`).css('border-color', '#dc3545');
+                isValid = false;
+            } else {
+                $(`#${id}Error`).text('');
+                $(`#${id}`).css('border-color', '#ccc');
             }
         });
+
+        return isValid;
     }
 
     /**
-     * Function to populate Crops table.
-     * @param {Array} crops - Array of crop objects.
+     * Utility to clear form fields and alerts.
      */
-    function populateCropsTable(crops) {
-        const tbody = $('#cropsTableBody');
-        tbody.empty();
+    function clearForm(form) {
+        form.find('input, textarea').val('');
+        form.find('.error').text('');
+        form.find('input').css('border-color', '#ccc');
+    }
 
-        if (crops.length === 0) {
-            tbody.append('<tr><td colspan="6" style="text-align:center;">No crops available.</td></tr>');
-            return;
+    function clearAlert(alertId) {
+        $(`#${alertId}`).html('');
+    }
+        /**
+         * Function to fetch and display Crops data.
+         */
+        function fetchCrops() {
+            const token = getToken();
+            if (!token) {
+                showAlert('cropsAlert', 'Authentication token is missing. Please log in.', 'danger');
+                return;
+            }
+
+            $.ajax({
+                url: 'http://localhost:8080/green-shadow/api/v1/crops',
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                success: function(data) {
+                    populateCropsTable(data);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch crops.';
+                    showAlert('cropsAlert', error, 'danger');
+                }
+            });
         }
 
-        crops.forEach(crop => {
-            const row = `<tr>
+        /**
+         * Function to populate Crops table.
+         * @param {Array} crops - Array of crop objects.
+         */
+        function populateCropsTable(crops) {
+            const tbody = $('#cropsTableBody');
+            tbody.empty();
+
+            if (crops.length === 0) {
+                tbody.append('<tr><td colspan="8" style="text-align:center;">No crops available.</td></tr>');
+                return;
+            }
+
+            crops.forEach(crop => {
+                const imageSrc = crop.cropImage ? `data:image/*;base64,${crop.cropImage}` : '';
+                const imageTag = imageSrc ? `<img src="${imageSrc}" alt="Crop Image" style="max-width: 50px; max-height: 50px;">` : 'No Image';
+
+                const row = `<tr>
                             <td>${crop.id}</td>
                             <td>${crop.cropName}</td>
-                            <td>${crop.plantingDate}</td>
-                            <td>${crop.harvestDate}</td>
+                            <td>${crop.scientificName || 'N/A'}</td>
+                            <td>${crop.category || 'N/A'}</td>
+                            <td>${crop.season || 'N/A'}</td>
+                            <td>${imageTag}</td>
                             <td>${crop.field ? crop.field.name : 'N/A'}</td>
                             <td>
                                 <button class="btn btn-warning edit-crop-btn" data-id="${crop.id}">Edit</button>
                                 <button class="btn btn-danger delete-crop-btn" data-id="${crop.id}">Delete</button>
                             </td>
                          </tr>`;
-            tbody.append(row);
-        });
-    }
+                tbody.append(row);
+            });
+        }
 
-    /**
-     * Event listener for Add Crop button to open the modal.
-     */
-    $('#addCropBtn').on('click', function() {
-        // Populate Fields dropdown before showing modal
-        populateFieldsDropdown();
-        $('#addCropModal').show();
-    });
 
-    /**
-     * Function to populate Fields dropdown in Crops modals.
-     */
-    function populateFieldsDropdown() {
-        $.ajax({
-            url: 'http://localhost:8080/api/fields',
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            success: function(fields) {
-                // Populate Add Crop Modal
-                const addCropField = $('#cropField');
-                addCropField.empty();
-                addCropField.append('<option value="" disabled selected>Select Field</option>');
-                fields.forEach(field => {
-                    addCropField.append(`<option value="${field.id}">${field.name}</option>`);
-                });
-
-                // Populate Edit Crop Modal
-                const editCropField = $('#editCropField');
-                editCropField.empty();
-                editCropField.append('<option value="" disabled selected>Select Field</option>');
-                console.log(fields)
-                fields.forEach(field => {
-                    console.log('sdofjjro')
-                    editCropField.append(`<option value="${field.id}">${field.name}1</option>`);
-                });
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch fields.';
-                showAlert('cropsAlert', error, 'danger');
+        /**
+         * Image preview for Add Crop Modal.
+         */
+        $('#cropImage').on('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#cropImagePreview').attr('src', e.target.result).show();
+                }
+                reader.readAsDataURL(file);
+            } else {
+                $('#cropImagePreview').hide();
             }
         });
-    }
 
-    /**
-     * Event listener for Add Crop form submission.
-     */
-    $('#addCropForm').on('submit', function(e) {
-        e.preventDefault();
-
-        // Simple validation
-        let isValid = true;
-
-        const cropName = $('#cropName').val().trim();
-        const plantingDate = $('#plantingDate').val();
-        const harvestDate = $('#harvestDate').val();
-        const cropField = $('#cropField').val();
-
-        if (cropName === '') {
-            $('#cropNameError').text('Crop Name is required.');
-            $('#cropName').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#cropNameError').text('');
-            $('#cropName').css('border-color', '#ccc');
-        }
-
-        if (plantingDate === '') {
-            $('#plantingDateError').text('Planting Date is required.');
-            $('#plantingDate').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#plantingDateError').text('');
-            $('#plantingDate').css('border-color', '#ccc');
-        }
-
-        if (harvestDate === '') {
-            $('#harvestDateError').text('Harvest Date is required.');
-            $('#harvestDate').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#harvestDateError').text('');
-            $('#harvestDate').css('border-color', '#ccc');
-        }
-
-        if (!cropField) {
-            $('#cropFieldError').text('Field selection is required.');
-            $('#cropField').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#cropFieldError').text('');
-            $('#cropField').css('border-color', '#ccc');
-        }
-
-        if (!isValid) return;
-
-        // Prepare data
-        const data = {
-            cropName: cropName,
-            plantingDate: plantingDate,
-            harvestDate: harvestDate,
-            field: { id: cropField }
-        };
-
-        // AJAX POST request to add crop
-        $.ajax({
-            url: 'http://localhost:8080/api/crops',
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function(response) {
-                showAlert('addCropAlert', 'Crop added successfully!', 'success');
-                fetchCrops();
-                // Close modal after short delay
-                setTimeout(() => {
-                    $('#addCropModal').hide();
-                    clearForm($('#addCropForm'));
-                    clearAlert('addCropAlert');
-                }, 1500);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to add crop.';
-                showAlert('addCropAlert', error, 'danger');
+        /**
+         * Image preview for Edit Crop Modal.
+         */
+        $('#editCropImage').on('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#editCropImagePreview').attr('src', e.target.result).show();
+                }
+                reader.readAsDataURL(file);
+            } else {
+                $('#editCropImagePreview').hide();
             }
         });
-    });
 
-    /**
-     * Event delegation for Edit Crop buttons.
-     */
-    $(document).on('click', '.edit-crop-btn', function() {
-        const cropId = $(this).data('id');
-
-        // Fetch crop details
-        $.ajax({
-            url: `http://localhost:8080/api/crops/${cropId}`,
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            success: function(crop) {
-                $('#editCropId').val(crop.id);
-                $('#editCropName').val(crop.cropName);
-                $('#editPlantingDate').val(crop.plantingDate);
-                $('#editHarvestDate').val(crop.harvestDate);
-                $('#editCropField').val(crop.field ? crop.field.id : '');
-                $('#editCropModal').show();
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch crop details.';
-                showAlert('cropsAlert', error, 'danger');
+        /**
+         * Function to fetch and populate Fields in dropdown.
+         * @param {String} selectElementId - The selector for the select element.
+         */
+        function populateFieldsDropdown(selectElementId) {
+            const token = getToken();
+            if (!token) {
+                showAlert('cropsAlert', 'Authentication token is missing. Please log in.', 'danger');
+                return;
             }
-        });
-    });
 
-    /**
-     * Event listener for Edit Crop form submission.
-     */
-    $('#editCropForm').on('submit', function(e) {
-        e.preventDefault();
-
-        // Simple validation
-        let isValid = true;
-
-        const cropId = $('#editCropId').val();
-        const cropName = $('#editCropName').val().trim();
-        const plantingDate = $('#editPlantingDate').val();
-        const harvestDate = $('#editHarvestDate').val();
-        const cropField = $('#editCropField').val();
-
-        if (cropName === '') {
-            $('#editCropNameError').text('Crop Name is required.');
-            $('#editCropName').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editCropNameError').text('');
-            $('#editCropName').css('border-color', '#ccc');
-        }
-
-        if (plantingDate === '') {
-            $('#editPlantingDateError').text('Planting Date is required.');
-            $('#editPlantingDate').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editPlantingDateError').text('');
-            $('#editPlantingDate').css('border-color', '#ccc');
-        }
-
-        if (harvestDate === '') {
-            $('#editHarvestDateError').text('Harvest Date is required.');
-            $('#editHarvestDate').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editHarvestDateError').text('');
-            $('#editHarvestDate').css('border-color', '#ccc');
-        }
-
-        if (!cropField) {
-            $('#editCropFieldError').text('Field selection is required.');
-            $('#editCropField').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editCropFieldError').text('');
-            $('#editCropField').css('border-color', '#ccc');
-        }
-
-        if (!isValid) return;
-
-        // Prepare data
-        const data = {
-            cropName: cropName,
-            plantingDate: plantingDate,
-            harvestDate: harvestDate,
-            field:{ id: cropField }
-        };
-
-        // AJAX PUT request to update crop
-        $.ajax({
-            url: `http://localhost:8080/api/crops/${cropId}`,
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function(response) {
-                showAlert('editCropAlert', 'Crop updated successfully!', 'success');
-                fetchCrops();
-                // Close modal after short delay
-                setTimeout(() => {
-                    $('#editCropModal').hide();
-                    clearForm($('#editCropForm'));
-                    clearAlert('editCropAlert');
-                }, 1500);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to update crop.';
-                showAlert('editCropAlert', error, 'danger');
-            }
-        });
-    });
-
-    /**
-     * Event delegation for Delete Crop buttons.
-     */
-    $(document).on('click', '.delete-crop-btn', function() {
-        const cropId = $(this).data('id');
-        if (confirm('Are you sure you want to delete this crop?')) {
-            // AJAX DELETE request to delete crop
             $.ajax({
-                url: `http://localhost:8080/api/crops/${cropId}`,
-                method: 'DELETE',
+                url: 'http://localhost:8080/green-shadow/api/v1/fields',
+                method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${getToken()}`
+                    'Authorization': `Bearer ${token}`
                 },
-                success: function(response) {
-                    showAlert('cropsAlert', 'Crop deleted successfully!', 'success');
-                    fetchCrops();
+                success: function(fields) {
+                    const select = $(selectElementId);
+                    select.empty();
+                    select.append('<option value="">Select Field</option>');
+                    fields.forEach(field => {
+                        select.append(`<option value="${field.id}">${field.name}</option>`);
+                    });
                 },
                 error: function(xhr) {
-                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to delete crop.';
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch fields.';
                     showAlert('cropsAlert', error, 'danger');
                 }
             });
         }
-    });
 
-    /**
-     * Function to fetch and display Staff data.
-     */
-    function fetchStaff() {
-        $.ajax({
-            url: 'http://localhost:8080/api/staff',
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            success: function(data) {
-                populateStaffTable(data);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch staff.';
-                showAlert('staffAlert', error, 'danger');
-            }
+        /**
+         * Event listener for Add Crop button to open the modal.
+         */
+        $('#addCropBtn').on('click', function() {
+            populateFieldsDropdown('#fieldId');
+            $('#addCropModal').show();
         });
-    }
 
-    /**
-     * Function to populate Staff table.
-     * @param {Array} staffList - Array of staff objects.
-     */
-    function populateStaffTable(staffList) {
-        const tbody = $('#staffTableBody');
-        tbody.empty();
-
-        if (staffList.length === 0) {
-            tbody.append('<tr><td colspan="5" style="text-align:center;">No staff members available.</td></tr>');
-            return;
+        /**
+         * Function to clear form fields and validation.
+         * @param {jQuery} form - jQuery object of the form to clear.
+         */
+        function clearForm(form) {
+            form[0].reset();
+            clearFormValidation(form);
         }
 
-        staffList.forEach(staff => {
-            const row = `<tr>
+        /**
+         * Function to clear form validation styles.
+         * @param {jQuery} form - jQuery object of the form.
+         */
+        function clearFormValidation(form) {
+            form.find('.form-control, .form-select').removeClass('is-invalid');
+            form.find('.invalid-feedback').text('');
+        }
+
+        /**
+         * Function to show alerts.
+         * @param {string} elementId - ID of the alert container.
+         * @param {string} message - Alert message.
+         * @param {string} type - Bootstrap alert type ('success', 'danger', etc.).
+         */
+        function showAlert(elementId, message, type) {
+            const alertDiv = $(`#${elementId}`);
+            alertDiv.html(`
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `);
+        }
+
+        /**
+         * Function to clear alerts.
+         * @param {string} elementId - ID of the alert container.
+         */
+        function clearAlert(elementId) {
+            $(`#${elementId}`).html('');
+        }
+
+        /**
+         * Event listener for Add Crop form submission.
+         */
+        $('#addCropForm').on('submit', function(e) {
+            e.preventDefault();
+
+            let isValid = validateForm('#addCropForm', ['cropName', 'fieldId']);
+            if (!isValid) return;
+
+            const formData = new FormData(this);
+
+            // AJAX POST request to add crop
+            $.ajax({
+                url: 'http://localhost:8080/green-shadow/api/v1/crops',
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function(response) {
+                    showAlert('addCropAlert', 'Crop added successfully!', 'success');
+                    fetchCrops();
+                    setTimeout(() => {
+                        $('#addCropModal').hide();
+                        clearForm($('#addCropForm'));
+                        $('#cropImagePreview').hide();
+                        clearAlert('addCropAlert');
+                    }, 1500);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to add crop.';
+                    showAlert('addCropAlert', error, 'danger');
+                }
+            });
+        });
+
+        /**
+         * Event delegation for Edit Crop buttons.
+         */
+        $(document).on('click', '.edit-crop-btn', function() {
+            populateFieldsDropdown('#editFieldIdcrop');
+
+            const cropId = $(this).data('id');
+
+            $.ajax({
+                url: `http://localhost:8080/green-shadow/api/v1/crops/${cropId}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                success: function(crop) {
+                    $('#editCropId').val(crop.id);
+                    $('#editCropName').val(crop.cropName);
+                    $('#editScientificName').val(crop.scientificName);
+                    $('#editCategory').val(crop.category);
+                    $('#editSeason').val(crop.season);
+                    populateFieldsDropdown('#editFieldId');
+                    setTimeout(() => {
+                        $('#editFieldId').val(crop.field ? crop.field.id : '');
+                    }, 500); // Ensure fields are populated before setting value
+
+                    if (crop.cropImage) {
+                        $('#editCropImagePreview').attr('src', `data:image/*;base64,${crop.cropImage}`).show();
+                    } else {
+                        $('#editCropImagePreview').hide();
+                    }
+
+                    $('#editCropModal').show();
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch crop details.';
+                    showAlert('cropsAlert', error, 'danger');
+                }
+            });
+        });
+
+
+        /**
+         * Event listener for Edit Crop form submission.
+         */
+        $('#editCropForm').on('submit', function(e) {
+            e.preventDefault();
+
+            let isValid = validateForm('#editCropForm', ['editCropName', 'editFieldId']);
+            if (!isValid) return;
+
+            const cropId = $('#editCropId').val();
+            const formData = new FormData(this);
+
+            // AJAX PUT request to update crop
+            $.ajax({
+                url: `http://localhost:8080/green-shadow/api/v1/crops/${cropId}`,
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function(response) {
+                    showAlert('editCropAlert', 'Crop updated successfully!', 'success');
+                    fetchCrops();
+                    setTimeout(() => {
+                        $('#editCropModal').hide();
+                        clearForm($('#editCropForm'));
+                        $('#editCropImagePreview').hide();
+                        clearAlert('editCropAlert');
+                    }, 1500);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to update crop.';
+                    showAlert('editCropAlert', error, 'danger');
+                }
+            });
+        });
+
+        /**
+         * Event delegation for Delete Crop buttons.
+         */
+        $(document).on('click', '.delete-crop-btn', function() {
+            const cropId = $(this).data('id');
+            if (confirm('Are you sure you want to delete this crop?')) {
+                const token = getToken();
+                if (!token) {
+                    showAlert('cropsAlert', 'Authentication token is missing. Please log in.', 'danger');
+                    return;
+                }
+
+                $.ajax({
+                    url: `http://localhost:8080/green-shadow/api/v1/crops/${cropId}`,
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    success: function(response) {
+                        showAlert('cropsAlert', 'Crop deleted successfully!', 'success');
+                        fetchCrops();
+                    },
+                    error: function(xhr) {
+                        const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to delete crop.';
+                        showAlert('cropsAlert', error, 'danger');
+                    }
+                });
+            }
+        });
+
+        /**
+         * Function to validate forms.
+         * @param {string} formSelector - jQuery selector for the form.
+         * @returns {boolean} - Returns true if valid, false otherwise.
+         */
+        function validateForm(formSelector) {
+            let isValid = true;
+            const form = $(formSelector);
+
+            // Iterate through required inputs and selects
+            form.find('input[required], select[required]').each(function() {
+                const input = $(this);
+                const value = input.val().trim();
+
+                if (!value) {
+                    const errorId = input.attr('id') + 'Error';
+                    $(`#${errorId}`).text(`${input.prev('label').text()} is required.`);
+                    input.addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    const errorId = input.attr('id') + 'Error';
+                    $(`#${errorId}`).text('');
+                    input.removeClass('is-invalid');
+                }
+            });
+
+            return isValid;
+        }
+
+        /**
+         * Function to get authentication token.
+         * Replace this with your actual token retrieval logic.
+         * @returns {string} - JWT token.
+         */
+        function getToken() {
+            // Example: Retrieve token from localStorage
+            return localStorage.getItem('token') || '';
+        }
+
+        /**
+         * Document Ready Function.
+         */
+        $(document).ready(function() {
+            // Initialize Bootstrap modals
+            $('#addCropModal').on('hidden.bs.modal', function () {
+                clearForm($('#addCropForm'));
+                clearFormValidation($('#addCropForm'));
+                clearAlert('addCropAlert');
+            });
+
+            $('#editCropModal').on('hidden.bs.modal', function () {
+                clearForm($('#editCropForm'));
+                clearFormValidation($('#editCropForm'));
+                clearAlert('editCropAlert');
+                $('#currentCropImage').hide();
+            });
+
+            // Populate Fields dropdown on page load
+            populateFieldsDropdown();
+
+            // Fetch and display crops on page load
+            fetchCrops();
+        });
+
+        /**
+         * Function to fetch and display Staff data.
+         */
+        function fetchStaff() {
+            const token = getToken();
+            if (!token) {
+                showAlert('staffAlert', 'Authentication token is missing. Please log in.', 'danger');
+                return;
+            }
+
+            $.ajax({
+                url: 'http://localhost:8080/green-shadow/api/v1/staff',
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                success: function(data) {
+                    populateStaffTable(data);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch staff members.';
+                    showAlert('staffAlert', error, 'danger');
+                }
+            });
+        }
+
+        /**
+         * Function to populate Staff table.
+         * @param {Array} staffList - Array of staff objects.
+         */
+        function populateStaffTable(staffList) {
+            const tbody = $('#staffTableBody');
+            tbody.empty();
+
+            if (staffList.length === 0) {
+                tbody.append('<tr><td colspan="12" style="text-align:center;">No staff members available.</td></tr>');
+                return;
+            }
+
+            staffList.forEach(staff => {
+                const address = [
+                    staff.addressLine1,
+                    staff.addressLine2,
+                    staff.addressLine3,
+                    staff.addressLine4,
+                    staff.addressLine5
+                ].filter(line => line).join(', ');
+
+                const row = `<tr>
                             <td>${staff.id}</td>
-                            <td>${staff.name}</td>
-                            <td>${staff.designation}</td>
-                            <td>${staff.contact}</td>
+                            <td>${staff.firstName}</td>
+                            <td>${staff.lastName || 'N/A'}</td>
+                            <td>${staff.designation || 'N/A'}</td>
+                            <td>${staff.gender || 'N/A'}</td>
+                            <td>${staff.joinedDate || 'N/A'}</td>
+                            <td>${staff.DOB || 'N/A'}</td>
+                            <td>${staff.contact || 'N/A'}</td>
+                            <td>${staff.email || 'N/A'}</td>
+                            <td>${staff.field ? staff.field.name : 'N/A'}</td>
+                            <td>${address || 'N/A'}</td>
                             <td>
                                 <button class="btn btn-warning edit-staff-btn" data-id="${staff.id}">Edit</button>
                                 <button class="btn btn-danger delete-staff-btn" data-id="${staff.id}">Delete</button>
                             </td>
                          </tr>`;
-            tbody.append(row);
-        });
-    }
+                tbody.append(row);
+            });
+        }
 
     /**
      * Event listener for Add Staff button to open the modal.
      */
     $('#addStaffBtn').on('click', function() {
+        populateFieldsDropdown('#stafffieldId');
         $('#addStaffModal').show();
     });
 
-    /**
-     * Event listener for Add Staff form submission.
-     */
-    $('#addStaffForm').on('submit', function(e) {
-        e.preventDefault();
+        /**
+         * Event listener for Add Staff form submission.
+         */
+        $('#addStaffForm').on('submit', function(e) {
+            e.preventDefault();
 
-        // Simple validation
-        let isValid = true;
+            let isValid = validateForm('#addStaffForm', ['firstName', 'fieldId']);
+            if (!isValid) return;
 
-        const name = $('#staffName').val().trim();
-        const role = $('#staffRole').val().trim();
-        const contact = $('#staffContact').val().trim();
+            const formData = {
+                firstName: $('#firstName').val(),
+                lastName: $('#lastName').val(),
+                designation: $('#designation').val(),
+                gender: $('#gender').val(),
+                joinedDate: $('#joinedDate').val(),
+                DOB: $('#DOB').val(),
+                contact: $('#contact').val(),
+                email: $('#email').val(),
+                fieldId: parseInt($('#stafffieldId').val()),
+                addressLine1: $('#addressLine1').val(),
+                addressLine2: $('#addressLine2').val(),
+                addressLine3: $('#addressLine3').val(),
+                addressLine4: $('#addressLine4').val(),
+                addressLine5: $('#addressLine5').val()
+            };
 
-        if (name === '') {
-            $('#staffNameError').text('Name is required.');
-            $('#staffName').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#staffNameError').text('');
-            $('#staffName').css('border-color', '#ccc');
-        }
-
-        if (role === '') {
-            $('#staffRoleError').text('Role is required.');
-            $('#staffRole').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#staffRoleError').text('');
-            $('#staffRole').css('border-color', '#ccc');
-        }
-
-        if (contact === '') {
-            $('#staffContactError').text('Contact is required.');
-            $('#staffContact').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#staffContactError').text('');
-            $('#staffContact').css('border-color', '#ccc');
-        }
-
-        if (!isValid) return;
-
-        // Prepare data
-        const data = {
-            name: name,
-            designation: role,
-            contact: contact
-        };
-
-        // AJAX POST request to add staff
-        $.ajax({
-            url: 'http://localhost:8080/api/staff',
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function(response) {
-                showAlert('addStaffAlert', 'Staff member added successfully!', 'success');
-                fetchStaff();
-                // Close modal after short delay
-                setTimeout(() => {
-                    $('#addStaffModal').hide();
-                    clearForm($('#addStaffForm'));
-                    clearAlert('addStaffAlert');
-                }, 1500);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to add staff member.';
-                showAlert('addStaffAlert', error, 'danger');
-            }
-        });
-    });
-
-    /**
-     * Event delegation for Edit Staff buttons.
-     */
-    $(document).on('click', '.edit-staff-btn', function() {
-        const staffId = $(this).data('id');
-
-        // Fetch staff details
-        $.ajax({
-            url: `http://localhost:8080/api/staff/${staffId}`,
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            success: function(staff) {
-                $('#editStaffId').val(staff.id);
-                $('#editStaffName').val(staff.name);
-                $('#editStaffRole').val(staff.role);
-                $('#editStaffContact').val(staff.contact);
-                $('#editStaffModal').show();
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch staff details.';
-                showAlert('staffAlert', error, 'danger');
-            }
-        });
-    });
-
-    /**
-     * Event listener for Edit Staff form submission.
-     */
-    $('#editStaffForm').on('submit', function(e) {
-        e.preventDefault();
-
-        // Simple validation
-        let isValid = true;
-
-        const staffId = $('#editStaffId').val();
-        const name = $('#editStaffName').val().trim();
-        const role = $('#editStaffRole').val().trim();
-        const contact = $('#editStaffContact').val().trim();
-
-        if (name === '') {
-            $('#editStaffNameError').text('Name is required.');
-            $('#editStaffName').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editStaffNameError').text('');
-            $('#editStaffName').css('border-color', '#ccc');
-        }
-
-        if (role === '') {
-            $('#editStaffRoleError').text('Role is required.');
-            $('#editStaffRole').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editStaffRoleError').text('');
-            $('#editStaffRole').css('border-color', '#ccc');
-        }
-
-        if (contact === '') {
-            $('#editStaffContactError').text('Contact is required.');
-            $('#editStaffContact').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editStaffContactError').text('');
-            $('#editStaffContact').css('border-color', '#ccc');
-        }
-
-        if (!isValid) return;
-
-        // Prepare data
-        const data = {
-            name: name,
-            designation: role,
-            contact: contact,
-            id:1
-        };
-
-        // AJAX PUT request to update staff
-        $.ajax({
-            url: `http://localhost:8080/api/staff/${staffId}`,
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function(response) {
-                showAlert('editStaffAlert', 'Staff member updated successfully!', 'success');
-                fetchStaff();
-                // Close modal after short delay
-                setTimeout(() => {
-                    $('#editStaffModal').hide();
-                    clearForm($('#editStaffForm'));
-                    clearAlert('editStaffAlert');
-                }, 1500);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to update staff member.';
-                showAlert('editStaffAlert', error, 'danger');
-            }
-        });
-    });
-
-    /**
-     * Event delegation for Delete Staff buttons.
-     */
-    $(document).on('click', '.delete-staff-btn', function() {
-        const staffId = $(this).data('id');
-        if (confirm('Are you sure you want to delete this staff member?')) {
-            // AJAX DELETE request to delete staff
+            // AJAX POST request to add staff
             $.ajax({
-                url: `http://localhost:8080/api/staff/${staffId}`,
-                method: 'DELETE',
+                url: 'http://localhost:8080/green-shadow/api/v1/staff',
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${getToken()}`
                 },
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
                 success: function(response) {
-                    showAlert('staffAlert', 'Staff member deleted successfully!', 'success');
+                    showAlert('addStaffAlert', 'Staff member added successfully!', 'success');
                     fetchStaff();
+                    setTimeout(() => {
+                        $('#addStaffModal').hide();
+                        clearForm($('#addStaffForm'));
+                        clearAlert('addStaffAlert');
+                    }, 1500);
                 },
                 error: function(xhr) {
-                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to delete staff member.';
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to add staff member.';
+                    showAlert('addStaffAlert', error, 'danger');
+                }
+            });
+        });
+
+        /**
+         * Event delegation for Edit Staff buttons.
+         */
+        $(document).on('click', '.edit-staff-btn', function() {
+            populateFieldsDropdown('#editstafffieldId');
+
+            const staffId = $(this).data('id');
+
+            $.ajax({
+                url: `http://localhost:8080/green-shadow/api/v1/staff/${staffId}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                success: function(staff) {
+                    $('#editStaffId').val(staff.id);
+                    $('#editFirstName').val(staff.firstName);
+                    $('#editLastName').val(staff.lastName);
+                    $('#editDesignation').val(staff.designation);
+                    $('#editGender').val(staff.gender);
+                    $('#editJoinedDate').val(staff.joinedDate);
+                    $('#editDOB').val(staff.DOB);
+                    $('#editContact').val(staff.contact);
+                    $('#editEmail').val(staff.email);
+                    $('#editAddressLine1').val(staff.addressLine1);
+                    $('#editAddressLine2').val(staff.addressLine2);
+                    $('#editAddressLine3').val(staff.addressLine3);
+                    $('#editAddressLine4').val(staff.addressLine4);
+                    $('#editAddressLine5').val(staff.addressLine5);
+
+                    populateFieldsDropdown('#editFieldId');
+                    setTimeout(() => {
+                        $('#editFieldId').val(staff.field ? staff.field.id : '');
+                    }, 500); // Ensure fields are populated before setting value
+
+                    $('#editStaffModal').show();
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch staff member details.';
                     showAlert('staffAlert', error, 'danger');
                 }
             });
-        }
-    });
+        });
 
-    /**
-     * Function to fetch and display Vehicles data.
-     */
-    function fetchVehicles() {
-        $.ajax({
-            url: 'http://localhost:8080/api/vehicles',
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            success: function(data) {
-                populateVehiclesTable(data);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch vehicles.';
-                showAlert('vehiclesAlert', error, 'danger');
+        /**
+         * Event listener for Edit Staff form submission.
+         */
+        $('#editStaffForm').on('submit', function(e) {
+            e.preventDefault();
+
+            let isValid = validateForm('#editStaffForm', ['editFirstName', 'editFieldId']);
+            if (!isValid) return;
+
+            const staffId = $('#editStaffId').val();
+            const formData = {
+                firstName: $('#editFirstName').val(),
+                lastName: $('#editLastName').val(),
+                designation: $('#editDesignation').val(),
+                gender: $('#editGender').val(),
+                joinedDate: $('#editJoinedDate').val(),
+                DOB: $('#editDOB').val(),
+                contact: $('#editContact').val(),
+                email: $('#editEmail').val(),
+                fieldId: parseInt($('#editstafffieldId').val()),
+                addressLine1: $('#editAddressLine1').val(),
+                addressLine2: $('#editAddressLine2').val(),
+                addressLine3: $('#editAddressLine3').val(),
+                addressLine4: $('#editAddressLine4').val(),
+                addressLine5: $('#editAddressLine5').val()
+            };
+
+            // AJAX PUT request to update staff
+            $.ajax({
+                url: `http://localhost:8080/green-shadow/api/v1/staff/${staffId}`,
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    showAlert('editStaffAlert', 'Staff member updated successfully!', 'success');
+                    fetchStaff();
+                    setTimeout(() => {
+                        $('#editStaffModal').hide();
+                        clearForm($('#editStaffForm'));
+                        clearAlert('editStaffAlert');
+                    }, 1500);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to update staff member.';
+                    showAlert('editStaffAlert', error, 'danger');
+                }
+            });
+        });
+
+        /**
+         * Event delegation for Delete Staff buttons.
+         */
+        $(document).on('click', '.delete-staff-btn', function() {
+            const staffId = $(this).data('id');
+            if (confirm('Are you sure you want to delete this staff member?')) {
+                const token = getToken();
+                if (!token) {
+                    showAlert('staffAlert', 'Authentication token is missing. Please log in.', 'danger');
+                    return;
+                }
+
+                $.ajax({
+                    url: `http://localhost:8080/green-shadow/api/v1/staff/${staffId}`,
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    success: function(response) {
+                        showAlert('staffAlert', 'Staff member deleted successfully!', 'success');
+                        fetchStaff();
+                    },
+                    error: function(xhr) {
+                        const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to delete staff member.';
+                        showAlert('staffAlert', error, 'danger');
+                    }
+                });
             }
         });
-    }
 
-    /**
-     * Function to populate Vehicles table.
-     * @param {Array} vehicles - Array of vehicle objects.
-     */
-    function populateVehiclesTable(vehicles) {
-        const tbody = $('#vehiclesTableBody');
-        tbody.empty();
+        /**
+         * Function to fetch and display Vehicles data.
+         */
+        function fetchVehicles() {
+            const token = getToken();
+            if (!token) {
+                showAlert('vehiclesAlert', 'Authentication token is missing. Please log in.', 'danger');
+                return;
+            }
 
-        if (vehicles.length === 0) {
-            tbody.append('<tr><td colspan="5" style="text-align:center;">No vehicles available.</td></tr>');
-            return;
+            $.ajax({
+                url: 'http://localhost:8080/green-shadow/api/v1/vehicles',
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                success: function(data) {
+                    populateVehiclesTable(data);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch vehicles.';
+                    showAlert('vehiclesAlert', error, 'danger');
+                }
+            });
         }
 
-        vehicles.forEach(vehicle => {
-            const row = `<tr>
+        /**
+         * Function to populate Vehicles table.
+         * @param {Array} vehicles - Array of vehicle objects.
+         */
+        function populateVehiclesTable(vehicles) {
+            const tbody = $('#vehiclesTableBody');
+            tbody.empty();
+
+            if (vehicles.length === 0) {
+                tbody.append('<tr><td colspan="7" style="text-align:center;">No vehicles available.</td></tr>');
+                return;
+            }
+
+            vehicles.forEach(vehicle => {
+                const row = `<tr>
                             <td>${vehicle.id}</td>
-                            <td>${vehicle.vehicleType}</td>
-                            <td>${vehicle.model}</td>
                             <td>${vehicle.licensePlate}</td>
+                            <td>${vehicle.vehicleCategory}</td>
+                            <td>${vehicle.fuelType}</td>
+                            <td>${vehicle.type}</td>
+                            <td>${vehicle.status}</td>
                             <td>
                                 <button class="btn btn-warning edit-vehicle-btn" data-id="${vehicle.id}">Edit</button>
                                 <button class="btn btn-danger delete-vehicle-btn" data-id="${vehicle.id}">Delete</button>
                             </td>
                          </tr>`;
-            tbody.append(row);
+                tbody.append(row);
+            });
+        }
+
+        /**
+         * Event listener for Add Vehicle button to open the modal.
+         */
+        $('#addVehicleBtn').on('click', function() {
+            // $('#addVehicleModal').modal('show');
+            $('#addVehicleModal').show();
+
         });
-    }
 
-    /**
-     * Event listener for Add Vehicle button to open the modal.
-     */
-    $('#addVehicleBtn').on('click', function() {
-        $('#addVehicleModal').show();
-    });
+        /**
+         * Event listener for Add Vehicle form submission.
+         */
+        $('#addVehicleForm').on('submit', function(e) {
+            e.preventDefault();
 
-    /**
-     * Event listener for Add Vehicle form submission.
-     */
-    $('#addVehicleForm').on('submit', function(e) {
-        e.preventDefault();
+            let isValid = validateForm('#addVehicleForm', ['vehicleLicensePlate', 'vehicleCategory', 'vehicleFuelType', 'vehicleType', 'vehicleStatus']);
+            if (!isValid) return;
 
-        // Simple validation
-        let isValid = true;
+            const formData = {
+                licensePlate: $('#vehicleLicensePlate').val(),
+                vehicleCategory: $('#vehicleCategory').val(),
+                fuelType: $('#vehicleFuelType').val(),
+                type: $('#vehicleType').val(),
+                status: $('#vehicleStatus').val()
+                // Note: Ignoring ManyToMany relationships as per instructions
+            };
 
-        const type = $('#vehicleType').val().trim();
-        const model = $('#vehicleModel').val().trim();
-        const licensePlate = $('#licensePlate').val().trim();
+            // AJAX POST request to add vehicle
+            $.ajax({
+                url: 'http://localhost:8080/green-shadow/api/v1/vehicles',
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    showAlert('addVehicleAlert', 'Vehicle added successfully!', 'success');
+                    fetchVehicles();
+                    setTimeout(() => {
+                        $('#addVehicleModal').modal('hide');
+                        clearForm($('#addVehicleForm'));
+                        clearAlert('addVehicleAlert');
+                    }, 1500);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to add vehicle.';
+                    showAlert('addVehicleAlert', error, 'danger');
+                }
+            });
+        });
 
-        if (type === '') {
-            $('#vehicleTypeError').text('Type is required.');
-            $('#vehicleType').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#vehicleTypeError').text('');
-            $('#vehicleType').css('border-color', '#ccc');
-        }
+        /**
+         * Event delegation for Edit Vehicle buttons.
+         */
+        $(document).on('click', '.edit-vehicle-btn', function() {
+            $('#editVehicleModal').show();
 
-        if (model === '') {
-            $('#vehicleModelError').text('Model is required.');
-            $('#vehicleModel').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#vehicleModelError').text('');
-            $('#vehicleModel').css('border-color', '#ccc');
-        }
+            const vehicleId = $(this).data('id');
 
-        if (licensePlate === '') {
-            $('#licensePlateError').text('License Plate is required.');
-            $('#licensePlate').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#licensePlateError').text('');
-            $('#licensePlate').css('border-color', '#ccc');
-        }
+            $.ajax({
+                url: `http://localhost:8080/green-shadow/api/v1/vehicles/${vehicleId}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                success: function(vehicle) {
+                    $('#editVehicleId').val(vehicle.id);
+                    $('#editVehicleLicensePlate').val(vehicle.licensePlate);
+                    $('#editVehicleCategory').val(vehicle.vehicleCategory);
+                    $('#editVehicleFuelType').val(vehicle.fuelType);
+                    $('#editVehicleType').val(vehicle.type);
+                    $('#editVehicleStatus').val(vehicle.status);
+                    $('#editVehicleModal').modal('show');
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch vehicle details.';
+                    showAlert('vehiclesAlert', error, 'danger');
+                }
+            });
+        });
 
-        if (!isValid) return;
+        /**
+         * Event listener for Edit Vehicle form submission.
+         */
+        $('#editVehicleForm').on('submit', function(e) {
+            e.preventDefault();
 
-        // Prepare data
-        const data = {
-            vehicleType: type,
-            status: 'AVAILABLE',
-            licensePlate: licensePlate
-        };
+            let isValid = validateForm('#editVehicleForm', ['editVehicleLicensePlate', 'editVehicleCategory', 'editVehicleFuelType', 'editVehicleType', 'editVehicleStatus']);
+            if (!isValid) return;
 
-        // AJAX POST request to add vehicle
-        $.ajax({
-            url: 'http://localhost:8080/api/vehicles',
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function(response) {
-                showAlert('addVehicleAlert', 'Vehicle added successfully!', 'success');
-                fetchVehicles();
-                // Close modal after short delay
-                setTimeout(() => {
-                    $('#addVehicleModal').hide();
-                    clearForm($('#addVehicleForm'));
-                    clearAlert('addVehicleAlert');
-                }, 1500);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to add vehicle.';
-                showAlert('addVehicleAlert', error, 'danger');
+            const vehicleId = $('#editVehicleId').val();
+            const formData = {
+                licensePlate: $('#editVehicleLicensePlate').val(),
+                vehicleCategory: $('#editVehicleCategory').val(),
+                fuelType: $('#editVehicleFuelType').val(),
+                type: $('#editVehicleType').val(),
+                status: $('#editVehicleStatus').val()
+                // Note: Ignoring ManyToMany relationships as per instructions
+            };
+
+            // AJAX PUT request to update vehicle
+            $.ajax({
+                url: `http://localhost:8080/green-shadow/api/v1/vehicles/${vehicleId}`,
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    showAlert('editVehicleAlert', 'Vehicle updated successfully!', 'success');
+                    fetchVehicles();
+                    setTimeout(() => {
+                        $('#editVehicleModal').modal('hide');
+                        clearForm($('#editVehicleForm'));
+                        clearAlert('editVehicleAlert');
+                    }, 1500);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to update vehicle.';
+                    showAlert('editVehicleAlert', error, 'danger');
+                }
+            });
+        });
+
+        /**
+         * Event delegation for Delete Vehicle buttons.
+         */
+        $(document).on('click', '.delete-vehicle-btn', function() {
+            const vehicleId = $(this).data('id');
+            if (confirm('Are you sure you want to delete this vehicle?')) {
+                const token = getToken();
+                if (!token) {
+                    showAlert('vehiclesAlert', 'Authentication token is missing. Please log in.', 'danger');
+                    return;
+                }
+
+                $.ajax({
+                    url: `http://localhost:8080/green-shadow/api/v1/vehicles/${vehicleId}`,
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    success: function(response) {
+                        showAlert('vehiclesAlert', 'Vehicle deleted successfully!', 'success');
+                        fetchVehicles();
+                    },
+                    error: function(xhr) {
+                        const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to delete vehicle.';
+                        showAlert('vehiclesAlert', error, 'danger');
+                    }
+                });
             }
         });
-    });
-
-    /**
-     * Event delegation for Edit Vehicle buttons.
-     */
-    $(document).on('click', '.edit-vehicle-btn', function() {
-        const vehicleId = $(this).data('id');
-
-        // Fetch vehicle details
-        $.ajax({
-            url: `http://localhost:8080/api/vehicles/${vehicleId}`,
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            success: function(vehicle) {
-                $('#editVehicleId').val(vehicle.id);
-                $('#editVehicleType').val(vehicle.vehicleType);
-                $('#editVehicleModel').val(vehicle.model);
-                $('#editLicensePlate').val(vehicle.licensePlate);
-                $('#editVehicleModal').show();
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch vehicle details.';
-                showAlert('vehiclesAlert', error, 'danger');
-            }
-        });
-    });
-
-    /**
-     * Event listener for Edit Vehicle form submission.
-     */
-    $('#editVehicleForm').on('submit', function(e) {
-        e.preventDefault();
-
-        // Simple validation
-        let isValid = true;
-
-        const vehicleId = $('#editVehicleId').val();
-        const type = $('#editVehicleType').val().trim();
-        const model = $('#editVehicleModel').val().trim();
-        const licensePlate = $('#editLicensePlate').val().trim();
-
-        if (type === '') {
-            $('#editVehicleTypeError').text('Type is required.');
-            $('#editVehicleType').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editVehicleTypeError').text('');
-            $('#editVehicleType').css('border-color', '#ccc');
-        }
-
-        if (model === '') {
-            $('#editVehicleModelError').text('Model is required.');
-            $('#editVehicleModel').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editVehicleModelError').text('');
-            $('#editVehicleModel').css('border-color', '#ccc');
-        }
-
-        if (licensePlate === '') {
-            $('#editLicensePlateError').text('License Plate is required.');
-            $('#editLicensePlate').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editLicensePlateError').text('');
-            $('#editLicensePlate').css('border-color', '#ccc');
-        }
-
-        if (!isValid) return;
-
-        // Prepare data
-        const data = {
-            vehicleType: type,
-            status: 'AVAILABLE',
-            licensePlate: licensePlate
-        };
-
-        // AJAX PUT request to update vehicle
-        $.ajax({
-            url: `http://localhost:8080/api/vehicles/${vehicleId}`,
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function(response) {
-                showAlert('editVehicleAlert', 'Vehicle updated successfully!', 'success');
-                fetchVehicles();
-                // Close modal after short delay
-                setTimeout(() => {
-                    $('#editVehicleModal').hide();
-                    clearForm($('#editVehicleForm'));
-                    clearAlert('editVehicleAlert');
-                }, 1500);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to update vehicle.';
-                showAlert('editVehicleAlert', error, 'danger');
-            }
-        });
-    });
 
     /**
      * Event delegation for Delete Vehicle buttons.
@@ -1346,7 +1351,7 @@ $(document).ready(function() {
         if (confirm('Are you sure you want to delete this vehicle?')) {
             // AJAX DELETE request to delete vehicle
             $.ajax({
-                url: `http://localhost:8080/api/vehicles/${vehicleId}`,
+                url: `http://localhost:8080/green-shadow/api/v1/vehicles/${vehicleId}`,
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${getToken()}`
@@ -1363,43 +1368,49 @@ $(document).ready(function() {
         }
     });
 
-    /**
-     * Function to fetch and display Equipment data.
-     */
-    function fetchEquipment() {
-        $.ajax({
-            url: 'http://localhost:8080/api/equipment',
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            success: function(data) {
-                populateEquipmentTable(data);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch equipment.';
-                showAlert('equipmentAlert', error, 'danger');
+        /**
+         * Function to fetch and display Equipment data.
+         */
+        function fetchEquipment() {
+            const token = getToken();
+            if (!token) {
+                showAlert('equipmentAlert', 'Authentication token is missing. Please log in.', 'danger');
+                return;
             }
-        });
-    }
 
-    /**
-     * Function to populate Equipment table.
-     * @param {Array} equipmentList - Array of equipment objects.
-     */
-    function populateEquipmentTable(equipmentList) {
-        const tbody = $('#equipmentTableBody');
-        tbody.empty();
-
-        if (equipmentList.length === 0) {
-            tbody.append('<tr><td colspan="5" style="text-align:center;">No equipment available.</td></tr>');
-            return;
+            $.ajax({
+                url: 'http://localhost:8080/green-shadow/api/v1/equipment',
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                success: function(data) {
+                    populateEquipmentTable(data);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch equipment.';
+                    showAlert('equipmentAlert', error, 'danger');
+                }
+            });
         }
 
-        equipmentList.forEach(equipment => {
-            const row = `<tr>
+        /**
+         * Function to populate Equipment table.
+         * @param {Array} equipmentList - Array of equipment objects.
+         */
+        function populateEquipmentTable(equipmentList) {
+            const tbody = $('#equipmentTableBody');
+            tbody.empty();
+
+            if (equipmentList.length === 0) {
+                tbody.append('<tr><td colspan="7" style="text-align:center;">No equipment available.</td></tr>');
+                return;
+            }
+
+            equipmentList.forEach(equipment => {
+                const row = `<tr>
                             <td>${equipment.id}</td>
-                            <td>${equipment.serialNumber}</td>
+                            <td>${equipment.name}</td>
                             <td>${equipment.equipmentType}</td>
                             <td>${equipment.status}</td>
                             <td>
@@ -1407,219 +1418,159 @@ $(document).ready(function() {
                                 <button class="btn btn-danger delete-equipment-btn" data-id="${equipment.id}">Delete</button>
                             </td>
                          </tr>`;
-            tbody.append(row);
+                tbody.append(row);
+            });
+        }
+
+        /**
+         * Event listener for Add Equipment button to open the modal.
+         */
+        $('#addEquipmentBtn').on('click', function() {
+            $('#addEquipmentModal').show();
+
         });
-    }
 
-    /**
-     * Event listener for Add Equipment button to open the modal.
-     */
-    $('#addEquipmentBtn').on('click', function() {
-        $('#addEquipmentModal').show();
-    });
+        /**
+         * Event listener for Add Equipment form submission.
+         */
+        $('#addEquipmentForm').on('submit', function(e) {
+            e.preventDefault();
 
-    /**
-     * Event listener for Add Equipment form submission.
-     */
-    $('#addEquipmentForm').on('submit', function(e) {
-        e.preventDefault();
+            let isValid = validateForm('#addEquipmentForm', ['equipmentName', 'equipmentType', 'equipmentStatus']);
+            if (!isValid) return;
 
-        // Simple validation
-        let isValid = true;
+            const formData = {
+                name: $('#equipmentName').val(),
+                equipmentType: $('#equipmentType').val(),
+                status: $('#equipmentStatus').val()
+                // Note: Ignoring ManyToMany relationships as per instructions
+            };
 
-        const name = $('#equipmentName').val().trim();
-        const type = $('#equipmentType').val().trim();
-        const status = $('#equipmentStatus').val();
-
-        if (name === '') {
-            $('#equipmentNameError').text('Name is required.');
-            $('#equipmentName').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#equipmentNameError').text('');
-            $('#equipmentName').css('border-color', '#ccc');
-        }
-
-        if (type === '') {
-            $('#equipmentTypeError').text('Type is required.');
-            $('#equipmentType').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#equipmentTypeError').text('');
-            $('#equipmentType').css('border-color', '#ccc');
-        }
-
-        if (!status) {
-            $('#equipmentStatusError').text('Status is required.');
-            $('#equipmentStatus').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#equipmentStatusError').text('');
-            $('#equipmentStatus').css('border-color', '#ccc');
-        }
-
-        if (!isValid) return;
-
-        // Prepare data
-        const data = {
-            serialNumber: name,
-            equipmentType: type,
-            status: status
-        };
-
-        // AJAX POST request to add equipment
-        $.ajax({
-            url: 'http://localhost:8080/api/equipment',
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function(response) {
-                showAlert('addEquipmentAlert', 'Equipment added successfully!', 'success');
-                fetchEquipment();
-                // Close modal after short delay
-                setTimeout(() => {
-                    $('#addEquipmentModal').hide();
-                    clearForm($('#addEquipmentForm'));
-                    clearAlert('addEquipmentAlert');
-                }, 1500);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to add equipment.';
-                showAlert('addEquipmentAlert', error, 'danger');
-            }
-        });
-    });
-
-    /**
-     * Event delegation for Edit Equipment buttons.
-     */
-    $(document).on('click', '.edit-equipment-btn', function() {
-        const equipmentId = $(this).data('id');
-
-        // Fetch equipment details
-        $.ajax({
-            url: `http://localhost:8080/api/equipment/${equipmentId}`,
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            success: function(equipment) {
-                $('#editEquipmentId').val(equipment.id);
-                $('#editEquipmentName').val(equipment.serialNumber);
-                $('#editEquipmentType').val(equipment.equipmentType);
-                $('#editEquipmentStatus').val(equipment.status);
-                $('#editEquipmentModal').show();
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch equipment details.';
-                showAlert('equipmentAlert', error, 'danger');
-            }
-        });
-    });
-
-    /**
-     * Event listener for Edit Equipment form submission.
-     */
-    $('#editEquipmentForm').on('submit', function(e) {
-        e.preventDefault();
-
-        // Simple validation
-        let isValid = true;
-
-        const equipmentId = $('#editEquipmentId').val();
-        const name = $('#editEquipmentName').val().trim();
-        const type = $('#editEquipmentType').val().trim();
-        const status = $('#editEquipmentStatus').val();
-
-        if (name === '') {
-            $('#editEquipmentNameError').text('Name is required.');
-            $('#editEquipmentName').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editEquipmentNameError').text('');
-            $('#editEquipmentName').css('border-color', '#ccc');
-        }
-
-        if (type === '') {
-            $('#editEquipmentTypeError').text('Type is required.');
-            $('#editEquipmentType').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editEquipmentTypeError').text('');
-            $('#editEquipmentType').css('border-color', '#ccc');
-        }
-
-        if (!status) {
-            $('#editEquipmentStatusError').text('Status is required.');
-            $('#editEquipmentStatus').css('border-color', '#dc3545');
-            isValid = false;
-        } else {
-            $('#editEquipmentStatusError').text('');
-            $('#editEquipmentStatus').css('border-color', '#ccc');
-        }
-
-        if (!isValid) return;
-
-        // Prepare data
-        const data = {
-            serialNumber: name,
-            equipmentType: type,
-            status: status
-        };
-
-        // AJAX PUT request to update equipment
-        $.ajax({
-            url: `http://localhost:8080/api/equipment/${equipmentId}`,
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`
-            },
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function(response) {
-                showAlert('editEquipmentAlert', 'Equipment updated successfully!', 'success');
-                fetchEquipment();
-                // Close modal after short delay
-                setTimeout(() => {
-                    $('#editEquipmentModal').hide();
-                    clearForm($('#editEquipmentForm'));
-                    clearAlert('editEquipmentAlert');
-                }, 1500);
-            },
-            error: function(xhr) {
-                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to update equipment.';
-                showAlert('editEquipmentAlert', error, 'danger');
-            }
-        });
-    });
-
-    /**
-     * Event delegation for Delete Equipment buttons.
-     */
-    $(document).on('click', '.delete-equipment-btn', function() {
-        const equipmentId = $(this).data('id');
-        if (confirm('Are you sure you want to delete this equipment?')) {
-            // AJAX DELETE request to delete equipment
+            // AJAX POST request to add equipment
             $.ajax({
-                url: `http://localhost:8080/api/equipment/${equipmentId}`,
-                method: 'DELETE',
+                url: 'http://localhost:8080/green-shadow/api/v1/equipment',
+                method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${getToken()}`
                 },
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
                 success: function(response) {
-                    showAlert('equipmentAlert', 'Equipment deleted successfully!', 'success');
+                    showAlert('addEquipmentAlert', 'Equipment added successfully!', 'success');
                     fetchEquipment();
+                    setTimeout(() => {
+                        $('#addEquipmentModal').modal('hide');
+                        clearForm($('#addEquipmentForm'));
+                        clearAlert('addEquipmentAlert');
+                    }, 1500);
                 },
                 error: function(xhr) {
-                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to delete equipment.';
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to add equipment.';
+                    showAlert('addEquipmentAlert', error, 'danger');
+                }
+            });
+        });
+
+        /**
+         * Event delegation for Edit Equipment buttons.
+         */
+        $(document).on('click', '.edit-equipment-btn', function() {
+            $('#editEquipmentModal').show();
+
+            const equipmentId = $(this).data('id');
+
+            $.ajax({
+                url: `http://localhost:8080/green-shadow/api/v1/equipment/${equipmentId}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                success: function(equipment) {
+                    $('#editEquipmentId').val(equipment.id);
+                    $('#editEquipmentName').val(equipment.name);
+                    $('#editEquipmentType').val(equipment.equipmentType);
+                    $('#editEquipmentStatus').val(equipment.status);
+                    $('#editEquipmentModal').modal('show');
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch equipment details.';
                     showAlert('equipmentAlert', error, 'danger');
                 }
             });
-        }
-    });
+        });
+
+        /**
+         * Event listener for Edit Equipment form submission.
+         */
+        $('#editEquipmentForm').on('submit', function(e) {
+            e.preventDefault();
+
+            let isValid = validateForm('#editEquipmentForm', ['editEquipmentName', 'editEquipmentType', 'editEquipmentStatus']);
+            if (!isValid) return;
+
+            const equipmentId = $('#editEquipmentId').val();
+            const formData = {
+                name: $('#editEquipmentName').val(),
+                equipmentType: $('#editEquipmentType').val(),
+                status: $('#editEquipmentStatus').val()
+                // Note: Ignoring ManyToMany relationships as per instructions
+            };
+
+            // AJAX PUT request to update equipment
+            $.ajax({
+                url: `http://localhost:8080/green-shadow/api/v1/equipment/${equipmentId}`,
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    showAlert('editEquipmentAlert', 'Equipment updated successfully!', 'success');
+                    fetchEquipment();
+                    setTimeout(() => {
+                        $('#editEquipmentModal').modal('hide');
+                        clearForm($('#editEquipmentForm'));
+                        clearAlert('editEquipmentAlert');
+                    }, 1500);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to update equipment.';
+                    showAlert('editEquipmentAlert', error, 'danger');
+                }
+            });
+        });
+
+        /**
+         * Event delegation for Delete Equipment buttons.
+         */
+        $(document).on('click', '.delete-equipment-btn', function() {
+            const equipmentId = $(this).data('id');
+            if (confirm('Are you sure you want to delete this equipment?')) {
+                const token = getToken();
+                if (!token) {
+                    showAlert('equipmentAlert', 'Authentication token is missing. Please log in.', 'danger');
+                    return;
+                }
+
+                $.ajax({
+                    url: `http://localhost:8080/green-shadow/api/v1/equipment/${equipmentId}`,
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    success: function(response) {
+                        showAlert('equipmentAlert', 'Equipment deleted successfully!', 'success');
+                        fetchEquipment();
+                    },
+                    error: function(xhr) {
+                        const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to delete equipment.';
+                        showAlert('equipmentAlert', error, 'danger');
+                    }
+                });
+            }
+        });
+
 
     /**
      * Function to fetch and display all data on dashboard load.
@@ -1630,6 +1581,7 @@ $(document).ready(function() {
         fetchStaff();
         fetchVehicles();
         fetchEquipment();
+        fetchLogs();
     }
 
     /**
@@ -1655,5 +1607,387 @@ $(document).ready(function() {
 
     // Run the initialization
     init();
-
 });
+
+
+/**
+ * Function to fetch and display Logs data.
+ */
+function fetchLogs() {
+    const token = getToken();
+    if (!token) {
+        showAlert('logsAlert', 'Authentication token is missing. Please log in.', 'danger');
+        return;
+    }
+
+    $.ajax({
+        url: 'http://localhost:8080/green-shadow/api/v1/logs',
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        success: function(data) {
+            populateLogsTable(data);
+        },
+        error: function(xhr) {
+            const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch logs.';
+            showAlert('logsAlert', error, 'danger');
+        }
+    });
+}
+
+/**
+ * Function to populate Logs table.
+ * @param {Array} logs - Array of log objects.
+ */
+function populateLogsTable(logs) {
+    const tbody = $('#logsTableBody');
+    tbody.empty();
+
+    if (logs.length === 0) {
+        tbody.append('<tr><td colspan="5" style="text-align:center;">No logs available.</td></tr>');
+        return;
+    }
+
+    logs.forEach(log => {
+        const imageSrc = log.observedImage ? `data:image/*;base64,${log.observedImage}` : '';
+        const imageTag = imageSrc ? `<img src="${imageSrc}" alt="Observed Image" style="max-width: 50px; max-height: 50px;">` : 'No Image';
+
+        const row = `<tr>
+                            <td>${log.id}</td>
+                            <td>${log.date ? log.date.substring(0,10) : 'N/A'}</td>
+                            <td>${log.details || 'N/A'}</td>
+                            <td>${imageTag}</td>
+                            <td>
+                                <button class="btn btn-warning edit-log-btn" data-id="${log.id}">Edit</button>
+                                <button class="btn btn-danger delete-log-btn" data-id="${log.id}">Delete</button>
+                            </td>
+                         </tr>`;
+        tbody.append(row);
+    });
+}
+
+/**
+ * Event listener for Add Log button to open the modal.
+ */
+$('#addLogBtn').on('click', function() {
+    $('#addLogModal').show();
+});
+
+
+/**
+ * Image preview for Add Log Modal.
+ */
+$('#logObservedImage').on('change', function() {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            $('#logObservedImagePreview').attr('src', e.target.result).show();
+        }
+        reader.readAsDataURL(file);
+    } else {
+        $('#logObservedImagePreview').hide();
+    }
+});
+
+
+/**
+ * Image preview for Edit Log Modal.
+ */
+$('#editLogObservedImage').on('change', function() {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            $('#editLogObservedImagePreview').attr('src', e.target.result).show();
+        }
+        reader.readAsDataURL(file);
+    } else {
+        $('#editLogObservedImagePreview').hide();
+    }
+});
+
+/**
+ * Event listener for Add Log form submission.
+ */
+$('#addLogForm').on('submit', function(e) {
+    e.preventDefault();
+
+    let isValid = validateForm('#addLogForm', ['logDate', 'logDetails']);
+    if (!isValid) return;
+
+    const date = $('#logDate').val();
+    const details = $('#logDetails').val();
+    const observedImageFile = $('#logObservedImage')[0].files[0];
+    let observedImage = '';
+
+    if (observedImageFile) {
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            observedImage = reader.result.split(',')[1]; // Remove the data URL part
+            submitAddLog(date, details, observedImage);
+        }
+        reader.readAsDataURL(observedImageFile);
+    } else {
+        submitAddLog(date, details, observedImage);
+    }
+});
+
+/**
+ * Function to retrieve authentication token.
+ * Replace this with your actual token retrieval logic.
+ */
+function getToken() {
+    // Example: Retrieve token from localStorage
+    return localStorage.getItem('authToken');
+}
+
+/**
+ * Function to submit Add Log data.
+ */
+function submitAddLog(date, details, observedImage) {
+    const token = getToken();
+    if (!token) {
+        showAlert('addLogAlert', 'Authentication token is missing. Please log in.', 'danger');
+        return;
+    }
+
+    const formData = {
+        date: date,
+        details: details,
+        observedImage: observedImage
+        // Note: Ignoring ManyToMany relationships as per instructions
+    };
+
+    // AJAX POST request to add log
+    $.ajax({
+        url: 'http://localhost:8080/green-shadow/api/v1/logs',
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(response) {
+            showAlert('addLogAlert', 'Log added successfully!', 'success');
+            fetchLogs();
+            setTimeout(() => {
+                $('#addLogModal').modal('hide');
+                clearForm($('#addLogForm'));
+                clearAlert('addLogAlert');
+            }, 1500);
+        },
+        error: function(xhr) {
+            const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to add log.';
+            showAlert('addLogAlert', error, 'danger');
+        }
+    });
+}
+
+
+/**
+ * Event delegation for Edit Log buttons.
+ */
+$(document).on('click', '.edit-log-btn', function() {
+    const logId = $(this).data('id');
+
+    const token = getToken();
+    if (!token) {
+        showAlert('logsAlert', 'Authentication token is missing. Please log in.', 'danger');
+        return;
+    }
+
+    $.ajax({
+        url: `http://localhost:8080/green-shadow/api/v1/logs/${logId}`,
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        success: function(log) {
+            $('#editLogId').val(log.id);
+            $('#editLogDate').val(log.date ? log.date.substring(0,10) : '');
+            $('#editLogDetails').val(log.details);
+
+            if (log.observedImage) {
+                $('#editLogObservedImagePreview').attr('src', `data:image/*;base64,${log.observedImage}`).show();
+            } else {
+                $('#editLogObservedImagePreview').hide();
+            }
+
+            $('#editLogModal').modal('show');
+        },
+        error: function(xhr) {
+            const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch log details.';
+            showAlert('logsAlert', error, 'danger');
+        }
+    });
+});
+
+
+/**
+ * Event delegation for Edit Log buttons.
+ */
+$(document).on('click', '.edit-log-btn', function() {
+    const logId = $(this).data('id');
+
+    const token = getToken();
+    if (!token) {
+        showAlert('logsAlert', 'Authentication token is missing. Please log in.', 'danger');
+        return;
+    }
+
+    $.ajax({
+        url: `http://localhost:8080/green-shadow/api/v1/logs/${logId}`,
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        success: function(log) {
+            $('#editLogId').val(log.id);
+            $('#editLogDate').val(log.date ? log.date.substring(0,10) : '');
+            $('#editLogDetails').val(log.details);
+
+            if (log.observedImage) {
+                $('#editLogObservedImagePreview').attr('src', `data:image/*;base64,${log.observedImage}`).show();
+            } else {
+                $('#editLogObservedImagePreview').hide();
+            }
+
+            $('#editLogModal').modal('show');
+        },
+        error: function(xhr) {
+            const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to fetch log details.';
+            showAlert('logsAlert', error, 'danger');
+        }
+    });
+});
+
+
+/**
+ * Event listener for Edit Log form submission.
+ */
+$('#editLogForm').on('submit', function(e) {
+    e.preventDefault();
+
+    let isValid = validateForm('#editLogForm', ['editLogDate', 'editLogDetails']);
+    if (!isValid) return;
+
+    const logId = $('#editLogId').val();
+    const date = $('#editLogDate').val();
+    const details = $('#editLogDetails').val();
+    const observedImageFile = $('#editLogObservedImage')[0].files[0];
+    let observedImage = '';
+
+    if (observedImageFile) {
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            observedImage = reader.result.split(',')[1]; // Remove the data URL part
+            submitEditLog(logId, date, details, observedImage);
+        }
+        reader.readAsDataURL(observedImageFile);
+    } else {
+        // If no new image is uploaded, retain the existing image
+        submitEditLog(logId, date, details, '');
+    }
+});
+
+/**
+ * Function to submit Edit Log data.
+ */
+function submitEditLog(logId, date, details, observedImage) {
+    const token = getToken();
+    if (!token) {
+        showAlert('editLogAlert', 'Authentication token is missing. Please log in.', 'danger');
+        return;
+    }
+
+    const formData = {
+        date: date,
+        details: details,
+        observedImage: observedImage
+        // Note: Ignoring ManyToMany relationships as per instructions
+    };
+
+    // AJAX PUT request to update log
+    $.ajax({
+        url: `http://localhost:8080/green-shadow/api/v1/logs/${logId}`,
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        },
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(response) {
+            showAlert('editLogAlert', 'Log updated successfully!', 'success');
+            fetchLogs();
+            setTimeout(() => {
+                $('#editLogModal').modal('hide');
+                clearForm($('#editLogForm'));
+                clearAlert('editLogAlert');
+            }, 1500);
+        },
+        error: function(xhr) {
+            const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to update log.';
+            showAlert('editLogAlert', error, 'danger');
+        }
+    });
+}
+
+/**
+ * Event delegation for Delete Log buttons.
+ */
+$(document).on('click', '.delete-log-btn', function() {
+    const logId = $(this).data('id');
+    if (confirm('Are you sure you want to delete this log?')) {
+        const token = getToken();
+        if (!token) {
+            showAlert('logsAlert', 'Authentication token is missing. Please log in.', 'danger');
+            return;
+        }
+
+        $.ajax({
+            url: `http://localhost:8080/green-shadow/api/v1/logs/${logId}`,
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            success: function(response) {
+                showAlert('logsAlert', 'Log deleted successfully!', 'success');
+                fetchLogs();
+            },
+            error: function(xhr) {
+                const error = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to delete log.';
+                showAlert('logsAlert', error, 'danger');
+            }
+        });
+    }
+});
+
+function validateForm(formSelector, requiredFields) {
+    let isValid = true;
+    const form = $(formSelector);
+
+    // Clear previous errors
+    form.find('span.error').empty();
+
+    requiredFields.forEach(fieldId => {
+        const field = $(`#${fieldId}`);
+        if (!field.val()) {
+            $(`#${fieldId}Error`).text('This field is required.');
+            isValid = false;
+        }
+    });
+
+    return isValid;
+}
+
+/**
+ * Initialize Logs functionality.
+ */
+function initializeLogs() {
+    fetchLogs();
+}
+
+// Call initializeLogs during dashboard initialization
+initializeLogs();
