@@ -298,6 +298,7 @@
     <div class="tab" data-tab="staff">Staff</div>
     <div class="tab" data-tab="vehicles">Vehicles</div>
     <div class="tab" data-tab="equipment">Equipment</div>
+    <div class="tab" data-tab="logs">Logs</div>
   </div>
 
   <!-- Tab Contents -->
@@ -402,6 +403,28 @@
       </tbody>
     </table>
   </div>
+
+  <!-- Logs Tab -->
+  <div class="tab-content" id="log">
+    <div id="logAlert"></div>
+    <button class="btn btn-primary" id="addLogBtn">Add New Equipment</button>
+    <table>
+      <thead>
+      <tr>
+        <th>Log Code</th>
+        <th>Log Date</th>
+        <th>Log Details</th>
+        <th>Field</th>
+        <th>Crop</th>
+        <th>Staff</th>
+      </tr>
+      </thead>
+      <tbody id="logTableBody">
+      <!-- Dynamic Content -->
+      </tbody>
+    </table>
+  </div>
+
 </div>
 
 <!-- Modals -->
@@ -679,6 +702,69 @@
     </form>
   </div>
 </div>
+
+
+<!-- Add Log Modal -->
+<div class="modal" id="addLogModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Add New Log</h2>
+    <div id="addLogAlert"></div>
+    <form id="addLogForm">
+      <label for="equipmentName">Name</label>
+      <input type="text" id="logName" name="logs" required>
+      <span class="error" id="logNameError"></span>
+
+      <label for="equipmentType">Type</label>
+      <input type="text" id="logType" name="equipmentType" required>
+      <span class="error" id="logTypeError"></span>
+
+      <label for="equipmentStatus">Status</label>
+      <select id="logStatus" name="equipmentStatus" required>
+        <option value="" disabled selected>Select Status</option>
+        <option value="Available">Available</option>
+        <option value="In Use">In Use</option>
+        <option value="Under Maintenance">Under Maintenance</option>
+      </select>
+      <span class="error" id="logStatusError"></span>
+
+      <button type="submit" class="btn btn-primary">Add Log</button>
+    </form>
+  </div>
+</div>
+
+
+<!-- Edit Log Modal -->
+<div class="modal" id="editLogModal">
+  <div class="modal-content">
+    <span class="close close-modal">&times;</span>
+    <h2>Edit Equipment</h2>
+    <div id="editLogAlert"></div>
+    <form id="editLogForm">
+      <input type="hidden" id="editLogId" name="editEquipmentId">
+
+      <label for="editEquipmentName">Name</label>
+      <input type="text" id="editLogName" name="editEquipmentName" required>
+      <span class="error" id="editLogNameError"></span>
+
+      <label for="editEquipmentType">Type</label>
+      <input type="text" id="editLogType" name="editEquipmentType" required>
+      <span class="error" id="editLogTypeError"></span>
+
+      <label for="editEquipmentStatus">Status</label>
+      <select id="editLogStatus" name="editEquipmentStatus" required>
+        <option value="" disabled selected>Select Status</option>
+        <option value="Available">Available</option>
+        <option value="In Use">In Use</option>
+        <option value="Under Maintenance">Under Maintenance</option>
+      </select>
+      <span class="error" id="editLogStatusError"></span>
+
+      <button type="submit" class="btn btn-primary">Update Equipment</button>
+    </form>
+  </div>
+</div>
+
 
 <!-- Custom JavaScript -->
 <script src="js/scripts.js"></script>
