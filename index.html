@@ -1,73 +1,106 @@
-<!-- File: index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Green Shadow - Login & Sign-Up</title>
-    <!-- Include any required CSS here -->
     <style>
-        /* Basic styles for the forms and layout */
+        /* General Styles */
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #008844, #DCEDC1);
             display: flex;
-            height: 100vh;
             justify-content: center;
             align-items: center;
+            height: 100vh;
+            background-size: cover;
         }
 
         .auth-container {
-            background-color: #fff;
-            padding: 20px 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .auth-container h2 {
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .auth-container form {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 900px;
+            padding: 30px;
+            box-sizing: border-box;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .auth-container label {
-            margin-bottom: 5px;
+        .auth-logo {
+            font-size: 2.5rem;
+            color: #2f5500;
             font-weight: bold;
+            text-align: center;
+            flex: 1;
+            margin-right: 20px;
         }
 
-        .auth-container input, .auth-container select {
-            padding: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #2F4F4F;
         }
 
-        .auth-container button {
-            padding: 10px;
-            background-color: #28a745;
+        label {
+            font-size: 1rem;
+            color: #3E4E50;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 18px;
+            border: 1px solid #B4D2B6;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #F0F8F2;
+            color: #2F4F4F;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #007B6B;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #4CAF50;
             color: #fff;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-size: 1.1rem;
             cursor: pointer;
-            font-size: 16px;
+            transition: background-color 0.3s ease;
+            box-sizing: border-box;
         }
 
-        .auth-container button:hover {
-            background-color: #218838;
+        button:hover {
+            background-color: #45a049;
         }
 
         .toggle-link {
             text-align: center;
-            margin-top: 10px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #2F4F4F;
         }
 
         .toggle-link a {
-            color: #007bff;
-            cursor: pointer;
+            color: #4CAF50;
             text-decoration: none;
+            font-weight: bold;
         }
 
         .toggle-link a:hover {
@@ -75,32 +108,52 @@
         }
 
         .alert {
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 15px;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            text-align: center;
         }
 
         .alert-success {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: #DFF2D8;
+            color: #4CAF50;
+            border: 1px solid #A7D8A7;
         }
 
         .alert-danger {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: #F8D7DA;
+            color: #D32F2F;
+            border: 1px solid #F1B0B7;
         }
 
         .close-alert {
             float: right;
-            cursor: pointer;
             font-weight: bold;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+                max-width: 100%;
+            }
+
+            .auth-logo {
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
 <body>
 <div class="auth-container">
+    <!-- Logo/Name -->
+    <div class="auth-logo">
+        Welcome To <br> Green Shadow Crop Management System
+    </div>
+
     <!-- Sign-In Form -->
-    <div id="signin-form">
+    <div id="signin-form" style="flex: 1; padding-left: 20px; padding-right: 20px;">
         <h2>Sign In</h2>
         <div id="signinAlert"></div>
         <form id="signinForm">
@@ -118,7 +171,7 @@
     </div>
 
     <!-- Sign-Up Form -->
-    <div id="signup-form" style="display: none;">
+    <div id="signup-form" style="flex: 1; padding-left: 20px; padding-right: 20px; display: none;">
         <h2>Sign Up</h2>
         <div id="signupAlert"></div>
         <form id="signupForm">
@@ -134,8 +187,10 @@
             <label for="signupRole">Role</label>
             <select id="signupRole" name="role" required>
                 <option value="" disabled selected>Select Role</option>
-                <option value="USER">User</option>
-                <option value="ADMIN">Admin</option>
+                <option value="MANAGER">Manager</option>
+                <option value="ADMINISTRATIVE">Admin</option>
+                <option value="SCIENTIST">Scientist</option>
+                <option value="OTHER">Other</option>
             </select>
 
             <button type="submit">Sign Up</button>
@@ -148,8 +203,6 @@
 
 <!-- jQuery CDN -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Custom JavaScript -->
 <script src="js/scripts.js"></script>
-
 </body>
 </html>
