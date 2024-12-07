@@ -1115,5 +1115,43 @@
 
 <!-- Custom JavaScript -->
 <script src="js/scripts.js"></script>
+<script>
+  // Example of hardcoded data
+  const logs = [
+    {
+      id: 1,
+      date: '2024-12-07',
+      details: 'Watered the crops in section A',
+      image: 'image1.jpg',
+    },
+    {
+      id: 2,
+      date: '2024-12-06',
+      details: 'Applied pesticide to section B',
+      image: 'image2.jpg',
+    },
+    {
+      id: 3,
+      date: '2024-12-05',
+      details: 'Harvested potatoes from section C',
+      image: 'image3.jpg',
+    },
+  ];
+
+  // Populate the table with hardcoded data
+  const logsTableBody = document.getElementById('logsTableBody');
+
+  logs.forEach((log) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${log.id}</td>
+      <td>${log.date}</td>
+      <td>${log.details}</td>
+      <td><img src="${log.image}" alt="Observed Image" width="50"></td>
+      <td><button class="btn btn-danger">Delete</button></td>
+    `;
+    logsTableBody.appendChild(row);
+  });
+</script>
 </body>
 </html>
